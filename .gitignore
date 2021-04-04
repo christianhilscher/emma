@@ -24,6 +24,6 @@ docs/site/
 /src/Manifest.toml
 
 # Own stuff
-/literature
-/documentation
-/src/dep
+/literature/*
+/documentation/*
+/src/dep/*
