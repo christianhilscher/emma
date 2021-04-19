@@ -15,7 +15,8 @@ mutable struct RFR <: AbstractRegressor
     max_depth::Union{Int,Nothing}
     max_features::Union{Int, Nothing}
     min_samples_leaf::Int
-    random_state::Union{AbstractRNG, Int}
+    # random_state::Union{AbstractRNG, Int}
+    random_state::Int
     bootstrap::Bool
     α::Float64
 
@@ -32,7 +33,8 @@ mutable struct RFR <: AbstractRegressor
             max_depth,
             max_features,
             min_samples_leaf,
-            check_random_state(random_state),
+            # check_random_state(random_state),
+            random_state,
             bootstrap,
             α)
 end
@@ -47,7 +49,7 @@ function fit!(forest::RFR, X::Matrix, Y::Matrix)
     forest.trees = Array{DTRegressor}(undef, forest.n_trees)
     # make the trees
 
-    @inbounds @threads for i in 1:forest.n_trees
+    @threads for i in 1:forest.n_trees
         # rng_states[i] = copy(forest.random_state)
         forest.trees[i] = create_tree(forest, X, Y)
     end
@@ -58,10 +60,12 @@ end
 function create_tree(forest::RFR, X::Matrix, Y::Matrix)
     n_samples = size(X, 1)
 
+    # Tree random state is random state + ThreadID
+    tree_rs = MersenneTwister(Threads.threadid() + forest.random_state)
 
     inds = Array{Int}(undef, n_samples)
     if forest.bootstrap
-        inds = [rand(forest.random_state, 1:n_samples) for i in 1:n_samples]
+        inds = [rand(tree_rs, 1:n_samples) for i in 1:n_samples]
         unique!(inds)
         X_ = copy(X[inds, :])
         Y_ = copy(Y[inds, :])
@@ -73,7 +77,7 @@ function create_tree(forest::RFR, X::Matrix, Y::Matrix)
     new_tree = DTRegressor(max_depth= forest.max_depth,
                             max_features = forest.max_features,
                             min_samples_leaf = forest.min_samples_leaf,
-                            random_state = forest.random_state,
+                            random_state = tree_rs,
                             α = forest.α)
     # This function calls the DTRegressor version of fit!
     fit!(new_tree, X_, Y_)

@@ -68,29 +68,21 @@ function get_mse(pred, y)
     return bias, variance, mse
 end
 
-# Random.seed!(68159)
-n = 200
-d = 10
+Random.seed!(68159)
+n = 2000
+d = 40
 
 x_train, x_test, y_train, y_test = make_data(n, d, "friedman")
 
 
 
-rf0 = RFR(n_trees = 50, α=0.0, bootstrap=false, random_state=0)
+rf0 = RFR(n_trees = 100, α=0.0, bootstrap=true, random_state=0, max_features=5)
 fit!(rf0, x_train, y_train)
 pred_rf0 = predict(rf0, x_test)
 
-rf05 = RFR(n_trees = 50, α=0.5, bootstrap=true, random_state=0)
+rf05 = RFR(n_trees = 100, α=0.5, bootstrap=true, random_state=0, max_features=5)
 fit!(rf05, x_train, y_train)
 pred_rf05 = predict(rf05, x_test)
 
 println(get_mse(pred_rf0, y_test))
 println(get_mse(pred_rf05, y_test))
-
-
-
-t = DTRegressor()
-m = DTRegressor()
-@threads for i in 1:5
-    fit!(m, x_train,y_train)
-end

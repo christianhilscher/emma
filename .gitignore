@@ -27,3 +27,4 @@ src/Manifest.toml
 literature/
 documentation/
 src/dep/
+.vscode/
