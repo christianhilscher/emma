@@ -155,8 +155,8 @@ function argmax_s(arr::Vector{Float64}, tree::DTRegressor)
     end
 
     # Retruning decrease and index
-    # return Δ, ind
-    return (4*(ind/n)*(1 - ind/n))^α * Δ, ind
+    return Δ, ind
+    # return (4*(ind/n)*(1 - ind/n))^α * Δ, ind
 end
 
 function get_Δ(arr::Vector{Float64}, ind::Int64, n::Int64, α::Float64)
@@ -167,8 +167,8 @@ function get_Δ(arr::Vector{Float64}, ind::Int64, n::Int64, α::Float64)
     Δ = (ind/n)*(1 - ind/n)*(Y_left - Y_rigth)^2
 
     # Return weighted splitpoint. If α = 0 then we have the standard case
-    # return (4*(ind/n)*(1 - ind/n))^α * Δ
-    return Δ
+    return (4*(ind/n)*(1 - ind/n))^α * Δ
+    # return Δ
 end
 
 function argmax_j(j::Int, tree::DTRegressor, X::Matrix, Y::Matrix, node_id::Int, max_mse)
