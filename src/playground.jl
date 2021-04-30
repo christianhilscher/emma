@@ -70,27 +70,28 @@ function get_mse(pred, y)
 end
 
 Random.seed!(68159)
-n = 1000
+n = 10000
 d = 20
 
 x_train, x_test, y_train, y_test = make_data(n, d, "friedman")
 
 
 
-# rf0 = RFR(n_trees = 100, α=0.0, bootstrap=true, random_state=0)
-# @time fit!(rf0, x_train, y_train)
-# pred_rf0 = predict(rf0, x_test)
+rf0 = RFR(n_trees = 100, α=0.0, bootstrap=true, random_state=0)
+@time fit!(rf0, x_train, y_train)
+pred_rf0 = predict(rf0, x_test)
 
-# rf05 = RFR(n_trees = 100, α=0.5, bootstrap=true, random_state=0)
-# fit!(rf05, x_train, y_train)
-# pred_rf05 = predict(rf05, x_test)
-
-# println(get_mse(pred_rf0, y_test))
-# println(get_mse(pred_rf05, y_test))
+rf05 = RFR(n_trees = 100, α=0.05, bootstrap=true, random_state=0)
+fit!(rf05, x_train, y_train)
+pred_rf05 = predict(rf05, x_test)
 
 
 
+t1 = rf05.trees[1]
+sum(t1.split_dimensions[t1.split_dimensions.!=nothing] .< 6)/ length(t1.split_dimensions[t1.split_dimensions.!=nothing])
 
+get_mse(pred_rf0, y_test)
+get_mse(pred_rf05, y_test)
 
 
 function cv(α_list::Vector{Float64}, x_train::Matrix{Float64}, y_train::Matrix{Float64}, x_test::Matrix{Float64}, y_test::Matrix{Float64})
