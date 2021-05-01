@@ -19,6 +19,7 @@ mutable struct RFR <: AbstractRegressor
     random_state::Int
     bootstrap::Bool
     α::Float64
+    param_dict::Dict
 
     RFR(; 
         n_trees=100,
@@ -27,16 +28,18 @@ mutable struct RFR <: AbstractRegressor
         min_samples_leaf=1,
         random_state=0,
         bootstrap=true,
-        α=0.0) = new(
+        α=0.0,
+        param_dict=Dict()) = new(
             nothing, [], 
-            n_trees,
-            max_depth,
-            max_features,
-            min_samples_leaf,
+            haskey(param_dict, :n_trees) ? param_dict[:n_trees] : n_trees,
+            haskey(param_dict, :max_depth) ? param_dict[:max_depth] : max_depth,
+            haskey(param_dict, :max_features) ? param_dict[:max_features] : max_features,
+            haskey(param_dict, :min_samples_leaf) ? param_dict[:min_samples_leaf] : min_samples_leaf,
             # check_random_state(random_state),
-            random_state,
-            bootstrap,
-            α)
+            haskey(param_dict, :random_state) ? param_dict[:random_state] : random_state,
+            haskey(param_dict, :bootstrap) ? param_dict[:bootstrap] : bootstrap,
+            haskey(param_dict, :α) ? param_dict[:α] : α,
+            param_dict)
 end
 
 function fit!(forest::RFR, X::Matrix, Y::Matrix)
