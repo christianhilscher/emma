@@ -31,14 +31,14 @@ mutable struct RFR <: AbstractRegressor
         α=0.0,
         param_dict=Dict()) = new(
             nothing, [], 
-            haskey(param_dict, :n_trees) ? param_dict[:n_trees] : n_trees,
-            haskey(param_dict, :max_depth) ? param_dict[:max_depth] : max_depth,
-            haskey(param_dict, :max_features) ? param_dict[:max_features] : max_features,
-            haskey(param_dict, :min_samples_leaf) ? param_dict[:min_samples_leaf] : min_samples_leaf,
+            haskey(param_dict, :n_trees) ? param_dict[:n_trees][1] : n_trees,
+            haskey(param_dict, :max_depth) ? param_dict[:max_depth][1] : max_depth,
+            haskey(param_dict, :max_features) ? param_dict[:max_features][1] : max_features,
+            haskey(param_dict, :min_samples_leaf) ? param_dict[:min_samples_leaf][1] : min_samples_leaf,
             # check_random_state(random_state),
-            haskey(param_dict, :random_state) ? param_dict[:random_state] : random_state,
-            haskey(param_dict, :bootstrap) ? param_dict[:bootstrap] : bootstrap,
-            haskey(param_dict, :α) ? param_dict[:α] : α,
+            haskey(param_dict, :random_state) ? param_dict[:random_state][1] : random_state,
+            haskey(param_dict, :bootstrap) ? param_dict[:bootstrap][1] : bootstrap,
+            haskey(param_dict, :α) ? param_dict[:α][1] : α,
             param_dict)
 end
 
