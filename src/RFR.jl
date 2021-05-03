@@ -106,3 +106,13 @@ function predict(forest::RFR, X::Matrix)
     out_arr = mean(prediction, dims=2)
     return out_arr
 end
+
+function strong_selection_freq(forest::RFR, var_index::Int)
+    res_arr = Array{Float64}(undef, forest.n_trees)
+
+    for (ind, tree) in enumerate(forest.trees)
+        tmp = tree.split_dimensions[tree.split_dimensions .!= nothing]
+        res_arr[ind] = sum(tmp .<= var_index)/length(tmp)
+    end
+    return mean(res_arr)
+end

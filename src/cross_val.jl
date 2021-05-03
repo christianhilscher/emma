@@ -1,9 +1,9 @@
-include("RFR.jl")
-using SparseGrids
-using ProgressMeter
 using Base.Threads
+include("RFR.jl")
 
 
+check_random_state(seed::Int) = MersenneTwister(seed)
+check_random_state(rng::AbstractRNG) = rng
 
 mutable struct cross_val
 
@@ -17,11 +17,14 @@ mutable struct cross_val
 
     # external parameters
     parameter_list::Dict
+    random_state::Union{AbstractRNG, Int}
 
-    cross_val(parameter_list) = new(
+    cross_val(parameter_list; 
+            random_state = 0) = new(
         [], [], [], [], 
         make_single_dicts(parameter_list), nothing,
-        parameter_list
+        parameter_list,
+        check_random_state(random_state)
     )
 end
 
@@ -67,30 +70,48 @@ function get_mse(pred, y)
     return bias, variance, mse
 end
 
-function fit!(cv::cross_val, X::Matrix, Y::Matrix; split::Float64=0.5)
-
-    # Split data into training and validation set
-    probs = rand(Uniform(0, 1), size(X, 1))
-    x_train = X[probs .<= split, :]
-    y_train = Y[probs .<= split, :]
-    x_test = X[probs .> split, :]
-    y_test = Y[probs .> split, :]
+function fit!(cv::cross_val, X::Matrix, Y::Matrix; nfolds::Int=3)
     
     # Initializing cross-validation object with random forests
     initiate_RF!(cv)
 
+    incr = Int(floor(size(X, 1)/nfolds))
+    println("Fitting ", nfolds, " folds")
+
     # Iterating over the list of dictionaries to fit the random forests
     for forest in cv.regressor_list
-        # Fit and predict 
-        fit!(forest, x_train, y_train)
-        pred = predict(forest, x_test)
+
+        result_matrix = Array{Float64}(undef, nfolds, 3)
+        
+        # Iterating through the folds
+        ind = 1:1
+        @inbounds for i = 1:nfolds
+            # Increase interval for the next fold
+            ind = (ind[end]:i*incr)
+
+            train_cond = (1:size(X,1) .< ind[1]) + (1:size(X,1) .> ind[end]) .== 1
+            test_cond = ind[1] .< 1:size(X, 1) .< ind[end]
+
+            x_train = X[train_cond, :]
+            x_test = X[test_cond, :]
+            y_train = Y[train_cond, :]
+            y_test = Y[test_cond, :]
+
+            # Fit and predict 
+            fit!(forest, x_train, y_train)
+            pred = predict(forest, x_test)
+
+            b, v, m = get_mse(pred, y_test)
+            result_matrix[i, :] = [b, v, m]
+        end
 
         # Assign values
-        bias, variance, mse = get_mse(pred, y_test)
+        bias, variance, mse = mean(result_matrix, dims=2)
         validation_results!(cv, bias, variance, mse)
     end
-
 end
+
+
 
 function validation_results!(cv::cross_val, bias::Float64, variance::Float64, mse::Float64)
     push!(cv.bias_list, bias)
@@ -110,6 +131,6 @@ function best_model(cv::cross_val, measure::String)
         ind = cv.variance_list .== minimum(cv.variance_list)
     end
 
-    println(cv.dictionary_list[ind])
-    return cv.regressor_list[ind]
+    # println(cv.dictionary_list[ind])
+    return cv.regressor_list[ind][1]
 end

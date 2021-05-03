@@ -1,15 +1,12 @@
 using Pkg
 using Statistics
 using Random, Distributions
-using Distributed
 using Plots
-using Profile, PProf
+using SparseGrids
+using BenchmarkTools
+
 include("RFR.jl")
 include("cross_val.jl")
-using Base.Threads
-using ProgressMeter
-using CUDA
-
 
 function friedman(x::Matrix, errors::Matrix)
     
@@ -72,17 +69,33 @@ function get_mse(pred, y)
 end
 
 Random.seed!(68159)
-n = 2000
+n = 4000
 d = 20
 
 x_train, x_test, y_train, y_test = make_data(n, d, "friedman")
 
-
-test_d = Dict(:α => [0, 0.05])
-cv_1 = cross_val(test_d)
-
-@time fit!(cv_1, x_train, y_train)
+d1 = Dict(:α => collect(LinRange(0, 0.5, 10)),
+            :max_features => [5],
+            :n_trees => [500])
 
 
-brf = best_model(cv_1, "mse")
-cv_1.mse_list
+cv1 = cross_val(d1, random_state = 0)
+fit!(cv1, x_train, y_train, nfolds=5)
+
+seq_res = Array{Float64}(undef, length(cv1.regressor_list))
+for (ind, rf) in enumerate(cv1.regressor_list)
+    seq_res[ind] = strong_selection_freq(rf, 5)
+end
+
+
+println("Correlation between freq. and bias: ", cor(cv1.bias_list, seq_res))
+println("Best bias: ", best_model(cv1, "bias").param_dict)
+println("Best mse: ", best_model(cv1, "mse").param_dict)
+
+
+l = @layout [a; b; c; d]
+p1 = plot(d1[:α], cv1.bias_list)
+p2 = plot(d1[:α], cv1.variance_list)
+p3 = plot(d1[:α], cv1.mse_list)
+p4 = plot(d1[:α], seq_res)
+plot(p1, p2, p3, p4, layout = l)
