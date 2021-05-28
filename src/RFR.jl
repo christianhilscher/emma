@@ -116,3 +116,13 @@ function strong_selection_freq(forest::RFR, var_index::Int)
     end
     return mean(res_arr)
 end
+
+function average_depth(forest::RFR)
+    n_nodes_list = Array{Int}(undef, forest.n_trees)
+
+    for (ind, tree) in enumerate(forest.trees)
+        n_nodes_list[ind] = tree.num_nodes
+    end
+    return mean(n_nodes_list)
+end
+

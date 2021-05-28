@@ -61,32 +61,44 @@ function make_data(n, d, func)
 end
 
 function get_mse(pred, y)
-    bias = mean(pred .- y)
+    bias = abs(mean(pred .- y))
     variance = var(pred)
     mse = mean((pred .- mean(y)).^2)
 
     return bias, variance, mse
 end
 
-Random.seed!(68159)
-n = 4000
-d = 20
+# Random.seed!(68159)
+n = 15000
+d = 40
+
+
 
 x_train, x_test, y_train, y_test = make_data(n, d, "friedman")
 
-d1 = Dict(:α => collect(LinRange(0, 0.5, 10)),
-            :max_features => [5],
-            :n_trees => [500])
+# a_list = [0, 0.1, 0.2, 0.5]
+a_list = collect(LinRange(0, 1, 10))
+a_list = [3, 4, 8, 10, 15, 20]
 
 
-cv1 = cross_val(d1, random_state = 0)
-fit!(cv1, x_train, y_train, nfolds=5)
+d1 = Dict{Symbol, Vector{Float64}}(
+    :max_features => [round(d/3)],
+    :n_trees => [30])
+
+d_cv = copy(d1)
+d_cv[:max_depth] = a_list
+
+
+cv1 = cross_val(d_cv, random_state = 0)
+fit!(cv1, x_train, y_train, nfolds=3)
 
 seq_res = Array{Float64}(undef, length(cv1.regressor_list))
 for (ind, rf) in enumerate(cv1.regressor_list)
     seq_res[ind] = strong_selection_freq(rf, 5)
 end
 
+# cv1.regressor_list
+# average_depth(cv1.regressor_list[4])
 
 println("Correlation between freq. and bias: ", cor(cv1.bias_list, seq_res))
 println("Best bias: ", best_model(cv1, "bias").param_dict)
@@ -94,8 +106,35 @@ println("Best mse: ", best_model(cv1, "mse").param_dict)
 
 
 l = @layout [a; b; c; d]
-p1 = plot(d1[:α], cv1.bias_list)
-p2 = plot(d1[:α], cv1.variance_list)
-p3 = plot(d1[:α], cv1.mse_list)
-p4 = plot(d1[:α], seq_res)
+p1 = plot(d_cv[:max_depth], cv1.bias_list)
+p2 = plot(d_cv[:max_depth], cv1.variance_list)
+p3 = plot(d_cv[:max_depth], cv1.mse_list)
+p4 = plot(d_cv[:max_depth], seq_res)
 plot(p1, p2, p3, p4, layout = l)
+
+d0 = copy(d1)
+d0[:α] = [0]
+
+
+d_best = best_model(cv1, "mse").param_dict
+
+rf0 = RFR(param_dict = d0)
+rf_best = RFR(param_dict = d_best)
+
+fit!(rf0, x_test, y_test)
+fit!(rf_best, x_test, y_test)
+
+pred0 = predict(rf0, x_test)
+pred_best = predict(rf_best, x_test)
+
+
+println("Standard model: ", get_mse(pred0, y_test))
+println("Adapted model: ", get_mse(pred_best, y_test))
+
+
+
+
+a = DTRegressor(max_depth = 15)
+fit!(a, x_test, y_test)
+
+a.num_nodes
