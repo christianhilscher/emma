@@ -1,5 +1,7 @@
 using Base.Threads
+using ProgressMeter
 include("RFR.jl")
+
 
 
 check_random_state(seed::Int) = MersenneTwister(seed)
@@ -67,6 +69,8 @@ function get_mse(pred, y)
     variance = var(pred)
     mse = mean((pred .- mean(y)).^2)
 
+    @assert mse == variance + bias^2 "mse != variance + bias^2"
+
     return bias, variance, mse
 end
 
@@ -79,7 +83,7 @@ function fit!(cv::cross_val, X::Matrix, Y::Matrix; nfolds::Int=3)
     println("Fitting ", nfolds, " folds")
 
     # Iterating over the list of dictionaries to fit the random forests
-    for forest in cv.regressor_list
+    @showprogress for forest in cv.regressor_list
 
         result_matrix = Array{Float64}(undef, nfolds, 3)
         

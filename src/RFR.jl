@@ -1,7 +1,5 @@
 using Random
 using Base.Threads
-
-
 include("DecisionTree.jl")
 
 mutable struct RFR <: AbstractRegressor

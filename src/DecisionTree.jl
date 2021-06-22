@@ -36,6 +36,8 @@ abstract type AbstractRegressor end
 
 mutable struct DTRegressor <: AbstractRegressor
 
+    
+    # Internal parameters
     num_nodes::Int
     binarytree::BinaryTree
     n_samples::Vector{Int} # Number of samples for each node

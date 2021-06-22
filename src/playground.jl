@@ -38,7 +38,10 @@ function make_data(n, d, func)
     x_train = rand(Uniform(0, 1), n, d)
     x_test = rand(Uniform(0, 1), n, d)
     
-    errors_train = rand(n, 1)
+    d = Normal(0, 10)
+    td = truncated(d, -Inf, Inf)
+
+    errors_train = rand(td, n, 1)
     errors_test = zeros(n, 1)
 
     if func=="friedman"
@@ -69,24 +72,24 @@ function get_mse(pred, y)
 end
 
 # Random.seed!(68159)
-n = 15000
-d = 40
+n = 1500
+d = 15
 
 
 
 x_train, x_test, y_train, y_test = make_data(n, d, "friedman")
 
 # a_list = [0, 0.1, 0.2, 0.5]
-a_list = collect(LinRange(0, 1, 10))
-a_list = [3, 4, 8, 10, 15, 20]
+a_list = collect(LinRange(0, 2, 20))
+# a_list = [3, 4, 5, 8, 10, 12]
 
 
 d1 = Dict{Symbol, Vector{Float64}}(
-    :max_features => [round(d/3)],
+    :max_features => [d],
     :n_trees => [30])
 
 d_cv = copy(d1)
-d_cv[:max_depth] = a_list
+d_cv[:α] = a_list
 
 
 cv1 = cross_val(d_cv, random_state = 0)
@@ -97,20 +100,22 @@ for (ind, rf) in enumerate(cv1.regressor_list)
     seq_res[ind] = strong_selection_freq(rf, 5)
 end
 
-# cv1.regressor_list
-# average_depth(cv1.regressor_list[4])
 
+
+println("Average number of nodes:, ", average_depth(cv1.regressor_list[4]))
 println("Correlation between freq. and bias: ", cor(cv1.bias_list, seq_res))
 println("Best bias: ", best_model(cv1, "bias").param_dict)
 println("Best mse: ", best_model(cv1, "mse").param_dict)
 
 
 l = @layout [a; b; c; d]
-p1 = plot(d_cv[:max_depth], cv1.bias_list)
-p2 = plot(d_cv[:max_depth], cv1.variance_list)
-p3 = plot(d_cv[:max_depth], cv1.mse_list)
-p4 = plot(d_cv[:max_depth], seq_res)
+p1 = plot(d_cv[:α], cv1.bias_list)
+p2 = plot(d_cv[:α], cv1.variance_list)
+p3 = plot(d_cv[:α], cv1.mse_list)
+p4 = plot(d_cv[:α], seq_res)
 plot(p1, p2, p3, p4, layout = l)
+
+
 
 d0 = copy(d1)
 d0[:α] = [0]
@@ -132,9 +137,4 @@ println("Standard model: ", get_mse(pred0, y_test))
 println("Adapted model: ", get_mse(pred_best, y_test))
 
 
-
-
-a = DTRegressor(max_depth = 15)
-fit!(a, x_test, y_test)
-
-a.num_nodes
+get_mse(pred_best, y_test)./get_mse(pred0, y_test) .- 1
