@@ -46,8 +46,8 @@ mutable struct DTRegressor <: AbstractRegressor
     yhat::Vector{Union{Float64, Nothing}} # Predictor in each node
     mse::Vector{Union{Float64, Nothing}} # Reduction in MSE when splitting this node
     n_features::Union{Int, Nothing}
-    pl::Vector{Union{Float64, Nothing}} # Probability of falling into left node
-    pr::Vector{Union{Float64, Nothing}} # Probability of falling into right node
+    pl::Vector{Float64} # Probability of falling into left node
+    pr::Vector{Float64} # Probability of falling into right node
     depth_list::Vector{Union{Int, Nothing}} # Records depth for each split
 
     # externally set parameters
@@ -172,7 +172,6 @@ function get_Δ(arr::Vector{Float64}, ind::Int64, n::Int64, α::Float64, depth::
 
     # Return weighted splitpoint. If α = 0 then we have the standard case
     return (4*(ind/n)*(1 - ind/n))^(depth^α) * Δ
-    # return Δ
 end
 
 function argmax_j(j::Int, tree::DTRegressor, X::Matrix, Y::Matrix, node_id::Int, max_mse, depth::Int)

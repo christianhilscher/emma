@@ -1,4 +1,3 @@
-using Base: _tablesz
 using Pkg
 using Statistics
 using Random, Distributions
@@ -74,7 +73,7 @@ function get_mse(pred, y)
 end
 
 Random.seed!(68151)
-n = 1000
+n = 2000
 d = 10
 
 
@@ -150,9 +149,11 @@ average_depth(rf0)
 average_depth(rf_best)
 
 
-pl = rf_best.trees[15].pl
 
-println("Mean: ", round(mean(pl[pl .!= -2]), digits=5), " and SD: ", round(std(pl[pl .!= -2]), digits=5))
+pl = combined_splitpoints(rf0)
 
-println("Fraction of splits not in middle: ", round((sum((pl .!= -2) .& (pl .!= 0.5))/length(pl)), digits=5))
+println("Mean: ", round(mean(pl), digits=5), " and SD: ", round(std(pl), digits=5))
 
+println("Fraction of splits not on median: ", round((sum(pl .!= 0.5)/length(pl)), digits=5))
+
+histogram(pl, bins=20)

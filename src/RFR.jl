@@ -119,8 +119,20 @@ function average_depth(forest::RFR)
     n_nodes_list = Array{Int}(undef, forest.n_trees)
 
     for (ind, tree) in enumerate(forest.trees)
+        # Taking the maximum of the depth
         n_nodes_list[ind] = maximum(tree.depth_list)
     end
     return mean(n_nodes_list)
 end
 
+function combined_splitpoints(forest::RFR)
+    return_arr = []
+
+    for tree in forest.trees
+        # Only add non-terminal nodes
+        push!(return_arr, tree.pl[tree.pl .!= -2])
+    end
+
+    # Flatten array before returning
+    return collect(Iterators.flatten(return_arr))
+end
