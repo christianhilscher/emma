@@ -1,3 +1,4 @@
+using Base: _tablesz
 using Pkg
 using Statistics
 using Random, Distributions
@@ -34,11 +35,12 @@ function summing2(x::Matrix, errors::Matrix)
 end
 
 function make_data(n, d, func)
-    x = Array{Float64}(undef, n, d)
+
     x_train = rand(Uniform(0, 1), n, d)
     x_test = rand(Uniform(0, 1), n, d)
     
-    d = Normal(0, 10)
+    σ = 1
+    d = Normal(0, σ)
     td = truncated(d, -Inf, Inf)
 
     errors_train = rand(td, n, 1)
@@ -71,18 +73,19 @@ function get_mse(pred, y)
     return bias, variance, mse
 end
 
-# Random.seed!(68159)
-n = 1500
-d = 15
+Random.seed!(68151)
+n = 1000
+d = 10
 
 
+times = 10
+res_mat = Array{Float64}(undef, (times, 3))
+
+# for i in 1:times
 
 x_train, x_test, y_train, y_test = make_data(n, d, "friedman")
 
-# a_list = [0, 0.1, 0.2, 0.5]
-a_list = collect(LinRange(0, 2, 20))
-# a_list = [3, 4, 5, 8, 10, 12]
-
+a_list = collect(LinRange(0, 15, 21))
 
 d1 = Dict{Symbol, Vector{Float64}}(
     :max_features => [d],
@@ -102,7 +105,7 @@ end
 
 
 
-println("Average number of nodes:, ", average_depth(cv1.regressor_list[4]))
+println("Average depth:, ", average_depth(cv1.regressor_list[4]))
 println("Correlation between freq. and bias: ", cor(cv1.bias_list, seq_res))
 println("Best bias: ", best_model(cv1, "bias").param_dict)
 println("Best mse: ", best_model(cv1, "mse").param_dict)
@@ -133,8 +136,23 @@ pred0 = predict(rf0, x_test)
 pred_best = predict(rf_best, x_test)
 
 
-println("Standard model: ", get_mse(pred0, y_test))
-println("Adapted model: ", get_mse(pred_best, y_test))
+println("Standard model: ", round.(get_mse(pred0, y_test), digits=5))
+println("Adapted model: ", round.(get_mse(pred_best, y_test), digits=5))
+
+res = get_mse(pred_best, y_test)./get_mse(pred0, y_test) .- 1
+println("Change to baseline: ", round.(res, digits=5))
+
+    # res_mat[i, :] .= res
+# end
 
 
-get_mse(pred_best, y_test)./get_mse(pred0, y_test) .- 1
+average_depth(rf0)
+average_depth(rf_best)
+
+
+pl = rf_best.trees[15].pl
+
+println("Mean: ", round(mean(pl[pl .!= -2]), digits=5), " and SD: ", round(std(pl[pl .!= -2]), digits=5))
+
+println("Fraction of splits not in middle: ", round((sum((pl .!= -2) .& (pl .!= 0.5))/length(pl)), digits=5))
+

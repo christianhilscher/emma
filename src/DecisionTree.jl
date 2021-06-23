@@ -48,6 +48,7 @@ mutable struct DTRegressor <: AbstractRegressor
     n_features::Union{Int, Nothing}
     pl::Vector{Union{Float64, Nothing}} # Probability of falling into left node
     pr::Vector{Union{Float64, Nothing}} # Probability of falling into right node
+    depth_list::Vector{Union{Int, Nothing}} # Records depth for each split
 
     # externally set parameters
     max_depth::Union{Int, Nothing}
@@ -62,7 +63,7 @@ mutable struct DTRegressor <: AbstractRegressor
         min_samples_leaf = 1,
         random_state=Random.GLOBAL_RNG,
         α = 0.01,)  = new(
-            0, BinaryTree(), [], [], [], [], [], nothing, [], [],
+            0, BinaryTree(), [], [], [], [], [], nothing, [], [], [],
         max_depth, 
         max_features, 
         min_samples_leaf, 
@@ -102,6 +103,7 @@ function split_node!(tree::DTRegressor, X::Matrix, Y::Matrix, depth::Int)
     tree.num_nodes += 1
     node_id = tree.num_nodes
     set_defaults!(tree, Y)
+    push!(tree.depth_list, depth)
 
     # In case we have max_features choose randomly that many features to consider
     n_feature_splits = isnothing(tree.max_features) ? tree.n_features : min(tree.n_features, tree.max_features)
@@ -110,7 +112,7 @@ function split_node!(tree::DTRegressor, X::Matrix, Y::Matrix, depth::Int)
     max_mse = 0
     @inbounds for j in features
         # println(size(X))
-        max_mse = argmax_j(j, tree, X, Y, node_id, max_mse)
+        max_mse = argmax_j(j, tree, X, Y, node_id, max_mse, depth)
     end
     if max_mse == 0
         return #No split was made
@@ -134,7 +136,7 @@ function split_node!(tree::DTRegressor, X::Matrix, Y::Matrix, depth::Int)
 end
 
 
-function argmax_s(arr::Vector{Float64}, tree::DTRegressor)
+function argmax_s(arr::Vector{Float64}, tree::DTRegressor, depth::Int)
     
     α = tree.α
     min_samples = tree.min_samples_leaf
@@ -148,7 +150,7 @@ function argmax_s(arr::Vector{Float64}, tree::DTRegressor)
     # Only look within the min_samples interval
     @inbounds for i in min_samples:n-min_samples-1
 
-        Δ_tmp = get_Δ(arr, i, n, α)
+        Δ_tmp = get_Δ(arr, i, n, α, depth)
         # Only updating if decrease in variance is higher
         if Δ_tmp > Δ
             Δ = Δ_tmp
@@ -161,7 +163,7 @@ function argmax_s(arr::Vector{Float64}, tree::DTRegressor)
     # return (4*(ind/n)*(1 - ind/n))^α * Δ, ind
 end
 
-function get_Δ(arr::Vector{Float64}, ind::Int64, n::Int64, α::Float64)
+function get_Δ(arr::Vector{Float64}, ind::Int64, n::Int64, α::Float64, depth::Int)
     # Calculating mean in left and right node respectively
     Y_left = mean(arr[1:ind])
     Y_rigth = mean(arr[ind+1:end])
@@ -169,11 +171,11 @@ function get_Δ(arr::Vector{Float64}, ind::Int64, n::Int64, α::Float64)
     Δ = (ind/n)*(1 - ind/n)*(Y_left - Y_rigth)^2
 
     # Return weighted splitpoint. If α = 0 then we have the standard case
-    return (4*(ind/n)*(1 - ind/n))^α * Δ
+    return (4*(ind/n)*(1 - ind/n))^(depth^α) * Δ
     # return Δ
 end
 
-function argmax_j(j::Int, tree::DTRegressor, X::Matrix, Y::Matrix, node_id::Int, max_mse)
+function argmax_j(j::Int, tree::DTRegressor, X::Matrix, Y::Matrix, node_id::Int, max_mse, depth::Int)
 
 
     if size(X, 1) > tree.min_samples_leaf
@@ -182,7 +184,7 @@ function argmax_j(j::Int, tree::DTRegressor, X::Matrix, Y::Matrix, node_id::Int,
         order = sortperm(x, alg=InsertionSort)
 
         x_sorted, y_sorted = x[order], vec(Y[order])
-        tmp_mse, split_index = argmax_s(y_sorted, tree)
+        tmp_mse, split_index = argmax_s(y_sorted, tree, depth)
         
         # If new mse is bigger than previous value, use this variable instead
         if tmp_mse > max_mse

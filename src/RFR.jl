@@ -119,7 +119,7 @@ function average_depth(forest::RFR)
     n_nodes_list = Array{Int}(undef, forest.n_trees)
 
     for (ind, tree) in enumerate(forest.trees)
-        n_nodes_list[ind] = tree.num_nodes
+        n_nodes_list[ind] = maximum(tree.depth_list)
     end
     return mean(n_nodes_list)
 end
