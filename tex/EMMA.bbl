@@ -1,0 +1,79 @@
+\begin{thebibliography}{10}
+
+\bibitem{JMLR:v13:biau12a}
+{\sc Biau, G.}
+\newblock Analysis of a random forests model.
+\newblock {\em Journal of Machine Learning Research 13}, 38 (2012), 1063--1095.
+
+\bibitem{breiman2001random}
+{\sc Breiman, L.}
+\newblock Random forests.
+\newblock {\em Machine Learning 45}, 1 (2001), 5--32.
+
+\bibitem{Breiman04consistencyfor}
+{\sc Breiman, L.}
+\newblock Consistency for a simple model of random forests.
+\newblock Tech. rep., 2004.
+
+\bibitem{breiman1984classification}
+{\sc Breiman, L., Friedman, J., Stone, C., and Olshen, R.}
+\newblock {\em Classification and Regression Trees}.
+\newblock Taylor \& Francis, 1984.
+
+\bibitem{Cutler01pert-}
+{\sc Cutler, A., and Zhao, G.}
+\newblock Pert - perfect random tree ensembles.
+\newblock {\em Computing Science and Statistics\/} (2001), 497.
+
+\bibitem{Denil2014a}
+{\sc Denil, M., Matheson, D., and de~Freitas, N.}
+\newblock Narrowing the gap: Random forests in theory and in practice.
+\newblock In {\em International Conference on Machine Learning\/} (2014).
+
+\bibitem{cd415527a3b345c2be98d5cc015ed62d}
+{\sc Ishwaran, H.}
+\newblock The effect of splitting on random forests.
+\newblock {\em Machine Learning 99}, 1 (Apr. 2015), 75--118.
+
+\bibitem{2019arXiv190610086K}
+{\sc {Klusowski}, J.}
+\newblock {Analyzing CART}.
+\newblock {\em arXiv e-prints\/} (June 2019), arXiv:1906.10086.
+
+\bibitem{NEURIPS2020_85fc37b1}
+{\sc Klusowski, J.}
+\newblock Sparse learning with cart.
+\newblock In {\em Advances in Neural Information Processing Systems\/} (2020),
+  pp.~11612--11622.
+
+\bibitem{Lin02randomforests}
+{\sc Lin, Y., and Jeon, Y.}
+\newblock Random forests and adaptive nearest neighbors.
+\newblock {\em Journal of the American Statistical Association\/} (2002),
+  101--474.
+
+\bibitem{SCORNET201672}
+{\sc Scornet, E.}
+\newblock On the asymptotics of random forests.
+\newblock {\em Journal of Multivariate Analysis 146\/} (2016), 72--83.
+\newblock Special Issue on Statistical Models and Methods for High or Infinite
+  Dimensional Spaces.
+
+\bibitem{Scornet_2015}
+{\sc Scornet, E., Biau, G., and Vert, J.-P.}
+\newblock Consistency of random forests.
+\newblock {\em The Annals of Statistics 43}, 4 (Aug 2015).
+
+\bibitem{10.1214/aos/1176343886}
+{\sc Stone, C.~J.}
+\newblock {Consistent Nonparametric Regression}.
+\newblock {\em The Annals of Statistics 5}, 4 (1977), 595 -- 620.
+
+\bibitem{doi:10.1080/01621459.2017.1319839}
+{\sc Wager, S., and Athey, S.}
+\newblock Estimation and inference of heterogeneous treatment effects using
+  random forests.
+\newblock {\em Journal of the American Statistical Association 113}, 523
+  (2018), 1228--1242.
+
+\end{thebibliography}

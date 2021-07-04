@@ -171,7 +171,11 @@ function get_Δ(arr::Vector{Float64}, ind::Int64, n::Int64, α::Float64, depth::
     Δ = (ind/n)*(1 - ind/n)*(Y_left - Y_rigth)^2
 
     # Return weighted splitpoint. If α = 0 then we have the standard case
-    return (4*(ind/n)*(1 - ind/n))^(depth^α) * Δ
+    if α == 0
+        return Δ
+    else
+        return (4*(ind/n)*(1 - ind/n))^(depth^α) * Δ
+    end
 end
 
 function argmax_j(j::Int, tree::DTRegressor, X::Matrix, Y::Matrix, node_id::Int, max_mse, depth::Int)
@@ -231,4 +235,13 @@ function predict(tree::DTRegressor, X::Matrix)
         prediction[ind] = predict_arr(tree, X_prime[:,ind])
     end
     return prediction
+end
+
+function strong_selection_freq(tree::DTRegressor, var_index::Int)
+    res_arr = 0
+
+    tmp = tree.split_dimensions[tree.split_dimensions .!= nothing]
+    res_arr = sum(tmp .<= var_index)/length(tmp)
+
+    return res_arr
 end

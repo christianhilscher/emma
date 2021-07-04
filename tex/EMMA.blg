@@ -1,0 +1,49 @@
+This is BibTeX, Version 0.99d (TeX Live 2021/Arch Linux)
+Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
+The top-level auxiliary file: EMMA.aux
+A level-1 auxiliary file: DTRF.aux
+The style file: acm.bst
+Database file #1: annot.bib
+Warning--empty institution in Breiman04consistencyfor
+You've used 14 entries,
+            2253 wiz_defined-function locations,
+            626 strings with 5849 characters,
+and the built_in function-call counts, 4306 in all, are:
+= -- 422
+> -- 148
+< -- 0
++ -- 63
+- -- 48
+* -- 335
+:= -- 695
+add.period$ -- 43
+call.type$ -- 14
+change.case$ -- 66
+chr.to.int$ -- 0
+cite$ -- 15
+duplicate$ -- 156
+empty$ -- 384
+format.name$ -- 48
+if$ -- 903
+int.to.chr$ -- 0
+int.to.str$ -- 14
+missing$ -- 14
+newline$ -- 74
+num.names$ -- 28
+pop$ -- 59
+preamble$ -- 1
+purify$ -- 52
+quote$ -- 0
+skip$ -- 94
+stack$ -- 0
+substring$ -- 335
+swap$ -- 39
+text.length$ -- 0
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 54
+warning$ -- 1
+while$ -- 43
+width$ -- 16
+write$ -- 142
+(There was 1 warning)

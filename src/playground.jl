@@ -64,6 +64,31 @@ function make_data(n, d, func)
     return x_train, x_test, y_train, y_test
 end
 
+function validation_forest(cv::cross_val)
+    d_best = best_model(cv, "mse").param_dict
+    
+    # Taking same results as for adapted and only changing α
+    d0 = copy(d_best)
+    d0[:α] = 0.0
+    d0[:n_features] = d
+
+    rf0 = RFR(param_dict = d0)
+    rf_best = RFR(param_dict = d_best)
+
+    return rf0, rf_best
+end
+
+function validate_model(rf0::RFR, rf_best::RFR, X::Matrix, Y::Matrix)
+    
+    fit!(rf0, x_test, y_test)
+    fit!(rf_best, x_test, y_test)
+    
+    pred0 = predict(rf0, X)
+    pred_best = predict(rf_best, X)
+
+    return pred0, pred_best
+end
+
 function get_mse(pred, y)
     bias = abs(mean(pred .- y))
     variance = var(pred)
@@ -73,18 +98,13 @@ function get_mse(pred, y)
 end
 
 Random.seed!(68151)
-n = 2000
-d = 10
+n = 3000
+d = 20
 
-
-times = 10
-res_mat = Array{Float64}(undef, (times, 3))
-
-# for i in 1:times
 
 x_train, x_test, y_train, y_test = make_data(n, d, "friedman")
 
-a_list = collect(LinRange(0, 15, 21))
+a_list = collect(LinRange(0, 30, 31))
 
 d1 = Dict{Symbol, Vector{Float64}}(
     :max_features => [d],
@@ -97,63 +117,55 @@ d_cv[:α] = a_list
 cv1 = cross_val(d_cv, random_state = 0)
 fit!(cv1, x_train, y_train, nfolds=3)
 
+rf0, rf_best = validation_forest(cv1)
+pred0, pred_best = validate_model(rf0, rf_best, x_test, y_test)
+
+pl0 = combined_splitpoints(rf0)
+pl_best = combined_splitpoints(rf_best)
+
+
 seq_res = Array{Float64}(undef, length(cv1.regressor_list))
 for (ind, rf) in enumerate(cv1.regressor_list)
-    seq_res[ind] = strong_selection_freq(rf, 5)
+    seq_res[ind] = average_depth(rf)
+    # seq_res[ind] = strong_selection_freq(rf, 5)
 end
 
 
-
-println("Average depth:, ", average_depth(cv1.regressor_list[4]))
-println("Correlation between freq. and bias: ", cor(cv1.bias_list, seq_res))
-println("Best bias: ", best_model(cv1, "bias").param_dict)
-println("Best mse: ", best_model(cv1, "mse").param_dict)
-
-
-l = @layout [a; b; c; d]
-p1 = plot(d_cv[:α], cv1.bias_list)
-p2 = plot(d_cv[:α], cv1.variance_list)
-p3 = plot(d_cv[:α], cv1.mse_list)
-p4 = plot(d_cv[:α], seq_res)
-plot(p1, p2, p3, p4, layout = l)
-
-
-
-d0 = copy(d1)
-d0[:α] = [0]
-
-
-d_best = best_model(cv1, "mse").param_dict
-
-rf0 = RFR(param_dict = d0)
-rf_best = RFR(param_dict = d_best)
-
-fit!(rf0, x_test, y_test)
-fit!(rf_best, x_test, y_test)
-
-pred0 = predict(rf0, x_test)
-pred_best = predict(rf_best, x_test)
+println("Average depth: ", average_depth(cv1.regressor_list[4]))
+println("Correlation between depth and bias: ", cor(cv1.bias_list, seq_res))
+println("Best mse: ", best_model(cv1, "mse").param_dict, "\n")
 
 
 println("Standard model: ", round.(get_mse(pred0, y_test), digits=5))
 println("Adapted model: ", round.(get_mse(pred_best, y_test), digits=5))
 
 res = get_mse(pred_best, y_test)./get_mse(pred0, y_test) .- 1
-println("Change to baseline: ", round.(res, digits=5))
-
-    # res_mat[i, :] .= res
-# end
-
-
-average_depth(rf0)
-average_depth(rf_best)
+println("Change to baseline: ", round.(res, digits=5), "\n")
 
 
 
-pl = combined_splitpoints(rf0)
+println("Average depth standard: ", average_depth(rf0))
+println("Average depth adapted: ", average_depth(rf_best))
 
-println("Mean: ", round(mean(pl), digits=5), " and SD: ", round(std(pl), digits=5))
 
-println("Fraction of splits not on median: ", round((sum(pl .!= 0.5)/length(pl)), digits=5))
 
-histogram(pl, bins=20)
+n_bins = 20
+
+p1 = plot(d_cv[:α], cv1.bias_list, title="Bias", legend=false)
+p2 = plot(d_cv[:α], cv1.variance_list, title="Variance", legend=false)
+p3 = plot(d_cv[:α], cv1.mse_list, title="MSE", legend=false)
+p4 = plot(d_cv[:α], seq_res, title="Depth", legend=false)
+p5 = histogram(pl0, bins=n_bins, legend=false)
+p6 = histogram(pl_best, bins=n_bins, legend=false)
+
+l = @layout [a; b; c; d; e f]
+plot(p1, p2, p3, p4, p5, p6, layout = l, size=(600, 650))
+
+
+i = 8
+a = zeros(length(rf_best.trees[i].depth_list), 2)
+a[:,1] = rf_best.trees[i].depth_list
+a[:,2] = rf_best.trees[i].pl
+
+println(a[a[:,2].!=-2,:])
+

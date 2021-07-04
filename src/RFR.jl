@@ -48,8 +48,8 @@ function fit!(forest::RFR, X::Matrix, Y::Matrix)
 
     # Allocate space
     forest.trees = Array{DTRegressor}(undef, forest.n_trees)
+    
     # make the trees
-
     @inbounds @threads for i in 1:forest.n_trees
         # rng_states[i] = copy(forest.random_state)
         forest.trees[i] = create_tree(forest, X, Y)
