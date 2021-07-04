@@ -1,16 +1,16 @@
 # Fdb version 3
-["bibtex EMMA"] 1625391486 "EMMA.aux" "EMMA.bbl" "EMMA" 1625391487
-  "/home/christian/UniMA/EMMA/tex/DTRF.aux" 1625391487 1146 502fa113d2751710cebb8935dda522c6 ""
+["bibtex EMMA"] 1625391486 "EMMA.aux" "EMMA.bbl" "EMMA" 1625416501
+  "/home/christian/UniMA/EMMA/tex/DTRF.aux" 1625416500 1146 502fa113d2751710cebb8935dda522c6 ""
   "/usr/share/texmf-dist/bibtex/bst/base/acm.bst" 1617738065 21064 c61a48664f3c347ce7f73c1a6a530506 ""
-  "EMMA.aux" 1625391487 1700 695cc6c81b624e4d28cb4512f56bc157 "pdflatex"
-  "annot.bib" 1625391483 5427 46acbd7aab97511b4d1db1caa6c20cb7 ""
+  "EMMA.aux" 1625416500 1700 695cc6c81b624e4d28cb4512f56bc157 "pdflatex"
+  "annot.bib" 1625416500 5427 46acbd7aab97511b4d1db1caa6c20cb7 ""
   (generated)
   "EMMA.bbl"
   "EMMA.blg"
-["pdflatex"] 1625391486 "/home/christian/UniMA/EMMA/tex/EMMA.tex" "/home/christian/UniMA/EMMA/tex/EMMA.pdf" "EMMA" 1625391487
+["pdflatex"] 1625391486 "/home/christian/UniMA/EMMA/tex/EMMA.tex" "/home/christian/UniMA/EMMA/tex/EMMA.pdf" "EMMA" 1625416501
   "/home/christian/.texlive/texmf-var/fonts/pk/ljfour/public/bbm/bbm10.600pk" 1625390584 6964 9d0efd1d0c29df391c68fb44934dd87e ""
-  "/home/christian/UniMA/EMMA/tex/EMMA.aux" 1625391487 1700 695cc6c81b624e4d28cb4512f56bc157 ""
-  "/home/christian/UniMA/EMMA/tex/EMMA.tex" 1625391435 8210 a8f9102682e1fef1150ebf0e361d7992 ""
+  "/home/christian/UniMA/EMMA/tex/EMMA.aux" 1625416500 1700 695cc6c81b624e4d28cb4512f56bc157 ""
+  "/home/christian/UniMA/EMMA/tex/EMMA.tex" 1625416500 8210 a8f9102682e1fef1150ebf0e361d7992 ""
   "/usr/share/texmf-dist/fonts/map/fontname/texfonts.map" 1617738065 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/share/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex7.tfm" 1617738065 1004 54797486969f23fa377b128694d548df ""
   "/usr/share/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex8.tfm" 1617738065 988 bdf658c3bfc2d96d3c8b02cfc1c94c20 ""
@@ -104,15 +104,15 @@
   "/usr/share/texmf-dist/web2c/texmf.cnf" 1617738065 39911 2da6c67557ec033436fe5418a70a8a61 ""
   "/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map" 1625390489 5045527 a0ef06d06af438d62994481e52c2af5f ""
   "/var/lib/texmf/web2c/pdftex/pdflatex.fmt" 1625390464 2812674 7e16405b279d6e12358d032dd67e3b3d ""
-  "DTRF.aux" 1625391487 1146 502fa113d2751710cebb8935dda522c6 "pdflatex"
-  "DTRF.tex" 1625391432 9050 51c9c6659c916660fa1daca08d3eb926 ""
-  "EMMA.aux" 1625391487 1700 695cc6c81b624e4d28cb4512f56bc157 "pdflatex"
-  "EMMA.bbl" 1625391486 2633 d7f14f9012f572fa7821f3b698283132 "bibtex EMMA"
-  "EMMA.tex" 1625391435 8210 a8f9102682e1fef1150ebf0e361d7992 ""
+  "DTRF.aux" 1625416500 1146 502fa113d2751710cebb8935dda522c6 "pdflatex"
+  "DTRF.tex" 1625416500 9050 51c9c6659c916660fa1daca08d3eb926 ""
+  "EMMA.aux" 1625416500 1700 695cc6c81b624e4d28cb4512f56bc157 "pdflatex"
+  "EMMA.bbl" 1625416500 2633 d7f14f9012f572fa7821f3b698283132 "bibtex EMMA"
+  "EMMA.tex" 1625416500 8210 a8f9102682e1fef1150ebf0e361d7992 ""
   (generated)
   "EMMA.pdf"
   "EMMA.log"
-  "EMMA.aux"
-  "/home/christian/UniMA/EMMA/tex/EMMA.pdf"
   "DTRF.aux"
+  "EMMA.aux"
   "/home/christian/UniMA/EMMA/tex/EMMA.log"
+  "/home/christian/UniMA/EMMA/tex/EMMA.pdf"
