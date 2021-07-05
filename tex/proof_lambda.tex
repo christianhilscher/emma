@@ -1,0 +1,161 @@
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{adjustbox}
+\usepackage{inputenc}
+\usepackage{caption}
+\usepackage[top=1.1in, bottom=1.2in, left=1.55in, right=1.55in]{geometry}
+\usepackage{bbm}
+\usepackage{bigints}
+\usepackage{float}
+\setlength\parindent{0pt}
+
+\usepackage{calc}
+
+\usepackage{accents}
+\newcommand{\dbtilde}[1]{\accentset{\approx}{#1}}
+
+\usepackage{setspace}
+%\singlespacing
+\onehalfspacing
+%\doublespacing
+
+\title{Proof $\Lambda > 0$}
+\author{Christian Hilscher}
+
+\begin{document}
+
+\maketitle
+
+
+A single decision tree is consistent if $MDI(X_j, \mathbf{t}) \rightarrow \infty \ \forall j \in S$. We can lower bound this by $MDI(X_j; \mathbf{t}) \geq \Lambda_j K_j(\mathbf{t})$. \\
+
+Now we prove that $\Lambda > 0$ since it can be argued that $K_j(\mathbf{t}) \rightarrow \infty$ for deeply grown trees.
+
+\subsection*{Notation}
+One can write
+
+\begin{align*}
+    \Delta(s; \mathbf{t}) = P(\mathbf{t}_L) P(\mathbf{t}_R) \left [\mathbbm{E}[Y | \mathbf{X} \in \mathbf{t}, X \leq s] - \mathbbm{E}[Y | \mathbf{X} \in \mathbf{t}, X > s] \right ]^2
+\end{align*}
+
+Define
+
+\begin{align}
+    \Xi(s; \mathbf{t}) = P(\mathbf{t}_L) P(\mathbf{t}_R) \left [\mathbbm{E}[Y | \mathbf{X} \in \mathbf{t}, X \leq s] - \mathbbm{E}[Y | \mathbf{X} \in \mathbf{t}, X > s] \right ] \label{Xi}
+\end{align}
+
+such that 
+
+\begin{align*}
+    \Delta(s; \mathbf{t}) &= \frac{[\Xi(s; \mathbf{t})]^2}{P(\mathbf{t}_L) P(\mathbf{t}_R)}
+\end{align*}
+
+\subsection*{Weighted approach}
+
+Here we deviate from Kuslowski (2020) and instead of analyzing $\Delta(s; \mathbf{t})$ we consider a weighted variant:
+
+\begin{align}
+    \Delta_{\alpha}(s; \mathbf{t}) &= [4 P(\mathbf{t}_L) P(\mathbf{t}_R)]^{\alpha} \Delta (s; \mathbf{t}) \label{delta_alpha} \\
+    &= \omega \ \Delta (s; \mathbf{t}) \nonumber
+\end{align}
+
+From now on we consider an interval $[a, b]$ where $0 \leq a < b \leq 1$. \\
+Instead of writing $P(\mathbf{t}_L)$ one can also write $P(s|\mathbf{t})$ to emphasize the dependence of the split-point. \\
+
+
+Taking (\ref{delta_alpha}) adapted with the weights then yields
+
+\begin{align}
+    \Delta_{\alpha}(s; \mathbf{t}) &= [4 P(s|\mathbf{t}) (1 - P(s|\mathbf{t}))]^{\alpha} \frac{[\Xi(s; \mathbf{t})]^2} {P(s|\mathbf{t}) (1 - P(s|\mathbf{t}))} \nonumber \\
+    &= \omega \
+    \frac{(\int_{a}^{s} p(s|\mathbf{t}) \bar{G}(\tilde{s}, \mathbf{t}) d\tilde{s} )^2}{P(s|\mathbf{t}) (1 - P(s|\mathbf{t}))} \label{weighted_int}
+\end{align}
+
+where $p(s|\mathbf{t})$ is the density function of $X | \mathbf{X} \in \mathbf{t}$. Since $\Delta_{\alpha} (s^*, \mathbf{t})$ is the maximum of (\ref{weighted_int}), any average over possible split points is smaller. Taking any prior $\Pi$ on $[0, 1]$ with the corresponding density $\pi$, one can thus write
+
+\begin{align}
+    \Delta_{\alpha}(s^*; \mathbf{t}) &\geq \int_a^b \omega \ 
+    \frac{(\int_{a}^{s} p(s|\mathbf{t}) \bar{G}(\tilde{s}; \mathbf{t}) d\tilde{s} )^2}{P(s|\mathbf{t})(1 - P(s|\mathbf{t}))} \ \pi \frac{\left (\frac{s-a}{b-a} \right )}{b-a} ds \nonumber \\
+    &= \int_0^1 \omega \ \frac{(\int_0^s (b-a)p(a+\tilde{s} (b-a) | \mathbf{t}) \bar{G} (a+\tilde{s} (b-a) ; \mathbf{t}) d \tilde{s})^2}{P(a+s(b-a)|\mathbf{t}) (1- P(a+s(b-a)|\mathbf{t}))} \Pi ds \label{long_int}
+\end{align}
+
+With a uniform prior, $\pi (s) = \mathbbm{1}_{s \in [0, 1]}$, and by assumption positive and continuous $p_X(\cdot)$ we have that
+
+\begin{align*}
+    \lim_{(a,b) \rightarrow (c,c)} (b-a) p (a+s(b-a)|\mathbf{t}) = \frac{p_X(c)}{p_X(c)} = 1 \\
+    \lim_{(a,b) \rightarrow (c,c)} P (a+s(b-a)|\mathbf{t}) = s \frac{p_X(c)}{p_X(c)} = s
+\end{align*}
+
+% Using this and the fact that $\omega = [4 P (a+s(b-a)|\mathbf{t}) (1-P (a+s(b-a)|\mathbf{t}))]^{\alpha} $, (\ref{eq2}) can be written as
+
+\subsection*{Digression: Auxiliary re-write}
+
+For simplifying things later on, let
+
+\begin{align*}
+    D(s) = \frac{\bar{F}(a+s(b-a);\mathbf{t}) - \bar{F}(c;\mathbf{t})}{(a + s(b-a) - c)^R} \qquad \text{and} \qquad \delta = \frac{c-a}{b-a}
+\end{align*}
+
+and note that this way
+
+\begin{align}
+    \frac{\bar{G}(a+\tilde{s}(b-a); \mathbf{t})}{(b-a)^R} = D(\tilde{s}) (\tilde{s} - \delta)^R - \int_0^1 D(\dbtilde{s})(\dbtilde{s} - \delta)^R d\dbtilde{s} \label{g_bar}
+\end{align}
+
+Approximating $\bar{F}(a + s(b-a); \mathbf{t})$ the point $s=c$ by a Taylor expansion and yields
+
+\begin{align}
+    \bar{F}(a + s(b-a); \mathbf{t}) - \bar{F}(c; \mathbf{t}) &= \bar{F}^{(1)}(c; \mathbf{t})(a + s(b-a) - c) + ... + \frac{\bar{F}^{(R)}(c; \mathbf{t})}{R!}(a + s(b-a) - c)^R \nonumber \\
+    \frac{\bar{F}(a + s(b-a); \mathbf{t}) - \bar{F}(c; \mathbf{t})}{(a + s(b-a) - c)^R} &= \bar{F}^{(1)}(c; \mathbf{t}) \frac{(a + s(b-a) - c)}{(a + s(b-a) - c)^R} + ... + \frac{\bar{F}^{(R)}(c; \mathbf{t})}{R!} \label{taylor}
+\end{align}
+
+and (\ref{taylor}) is equal to $D(s)$. Taking the limit then gives 
+
+\begin{align}
+    \lim_{(a,b) \rightarrow (c,c)} D(s) = \frac{\bar{F}^{(R)}(c; \mathbf{t})}{R!} \label{limit_D(s)}
+\end{align}
+
+We can assume without loss of generality that $\bar{F}^{(R)}(c; \mathbf{t}) > 0$. If then there exists $\varepsilon > 0$ such that $\sqrt{(b-c)^2 + (a-c)^2} < \varepsilon$, it holds because of uniform continuity that
+
+\begin{align}
+    \left | D(s) - \frac{\bar{F}^{(R)}(c; \mathbf{t})}{R!}\right | < min \left \{  \frac{\bar{F}^{(R)}(c; \mathbf{t})}{2R!}, \frac{1}{\delta^2} \right \} \label{minimum}
+\end{align}
+ 
+ \subsection*{Continuation main part}
+ We are now in the position to reformulate
+ 
+ \begin{align}
+     \Delta_{\alpha}(s^*; \mathbf{t}) &\geq \int_0^1 \omega \ \frac{(\int_0^s (b-a)p(a+\tilde{s} (b-a) | \mathbf{t}) \bar{G} (a+\tilde{s} (b-a) ; \mathbf{t}) d \tilde{s})^2}{P(a+s(b-a)|\mathbf{t}) (1- P(a+s(b-a)|\mathbf{t}))} \Pi ds \nonumber \\
+     &= \int_0^1 \omega \frac{(\int_0^s D(\tilde{s}) (\tilde{s} - \delta)^R d\tilde{s} - s \int_0^1 D(\dbtilde{s}) (\dbtilde{s} - \delta)^R) d\dbtilde{s})^2}{s(1-s)} \label{delta_d} \\
+ \end{align}
+ 
+ Since $s(1-s) \leq \frac{1}{4}$ and using Jensen's inequality it holds that (\ref{delta_d}) is at least
+ 
+ \begin{align*}
+     & 4 \left ( \int_0^1 \omega (\int_0^s D(\tilde{s}) (\tilde{s} - \delta)^R d\tilde{s} - s \int_0^1 D(\dbtilde{s}) (\dbtilde{s} - \delta)^R) d\dbtilde{s})^2 ds \right ) \\
+     & = 4 \left ( \int_0^1 [s(1-s)]^{\alpha} (\int_0^s D(\tilde{s}) (\tilde{s} - \delta)^R d\tilde{s} - s \int_0^1 D(\dbtilde{s}) (\dbtilde{s} - \delta)^R) d\dbtilde{s})^2 ds \right ) \\
+     & \leq 4 \int_0^1 [s(1-s)]^{\alpha} ds \ \left (\int_0^1 (\int_0^s D(\tilde{s}) (\tilde{s} - \delta)^R d\tilde{s} - s \int_0^1 D(\dbtilde{s}) (\dbtilde{s} - \delta)^R) d\dbtilde{s})^2 ds \right ) 
+ \end{align*}
+ 
+which, after applying Fubini's Theorem and using $\tilde{s}, \dbtilde{s} = x$, can be written as
+
+\begin{align*}
+    & 4 \int_0^1 [s(1-s)]^{\alpha} ds \ \left (\int_0^1 (\int_0^s D(x) (x - \delta)^R ds - s \int_0^1 D(x) (x - \delta)^R) ds)^2 dx \right ) \\
+    &= 4 \int_0^1 [s(1-s)]^{\alpha} ds \ \left ( \int_0^1 D(x) (x - \delta)^R [\int_0^s ds - s \int_0^1 ds]^2 dx \right) \\
+    &= 4 \ \frac{\Gamma (\alpha + 1)^2}{\Gamma (2\alpha + 2)} \int_0^1 D(x) (x - \delta)^R (x - \frac{1}{2}) dx
+\end{align*}
+
+where $\Gamma(\cdot)$ is the Gamma function.
+ 
+ From here on proof of Kuslowski applies just with the pre-multiplication of $\frac{\Gamma (\alpha + 1)^2}{\Gamma (2\alpha + 2)}$. Following his steps, it holds that 
+ 
+ \begin{align}
+     \liminf_{(a(\mathbf{t}), b(\mathbf{t})) \rightarrow (c, c)} \left \{  \frac{\Delta_{\alpha}(s^*; \mathbf{t})}{ \left (\frac{(b(\mathbf{t}) - a(\mathbf{t}))^R |\bar{F}^{(R)}(c; \mathbf{t})|}{R!} \right )^2} \right \} \geq \Delta_R
+ \end{align}
+ with
+ 
+ \begin{align*}
+     \Delta_R = \frac{\Gamma (\alpha + 1)^2}{\Gamma (2\alpha + 2)} \  \int_0^1 \Delta(s; [0, 1])ds > 0
+ \end{align*}
+\end{document}
