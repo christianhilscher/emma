@@ -23,5 +23,10 @@ For later purposes it will be beneficial to additionally define the mean centere
 
 which is the partial dependence function demeaned by the average of all observation within the respective node. \\
 
-This concept now allows us to reformulate our definition of strong and weak variables. Since 
-}
+This concept now allows us to reformulate our definition of strong and weak variables.
+Since weak variables $\{X_j : j \notin \mathcal{S}\}$ are independent of $Y$, by law of iterated expectations, (\ref{pardepfunc_f}) is equal to $E [Y \ | \ \mathbf{X} \in \mathbf{t}]$.
+This in turn implies that the demeaned partial dependence function $\bar{G}_j(x_j; \mathbf{t})$ is zero for all weak variables.
+In contrast, strong variables, have an effect on $Y$ and thus the demeaned partial dependence function is not necessarily 0. 
+Note however, that here we concern ourselves with the population parameters. 
+In a finite sample analysis, it is indeed the case that because of the error term, we can have $\bar{G}_j(x_j; \mathbf{t}) \neq 0$ even for weak variables. 
+This will fact play an important part in the later analysis when constructing a decision tree. 
