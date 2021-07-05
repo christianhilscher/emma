@@ -1,10 +1,5 @@
 \begin{thebibliography}{10}
 
-\bibitem{1fd935d77a6741c4808f63eeb3e3ca0b}
-Random forests and adaptive nearest neighbors.
-\newblock {\em Quarterly Publications of the American Statistical Association
-  101}, 474 (June 2006), 578--590.
-
 \bibitem{JMLR:v13:biau12a}
 {\sc Biau, G.}
 \newblock Analysis of a random forests model.
@@ -51,12 +46,25 @@ Random forests and adaptive nearest neighbors.
 \newblock In {\em Advances in Neural Information Processing Systems\/} (2020),
   pp.~11612--11622.
 
+\bibitem{li2019debiased}
+{\sc Li, X., Wang, Y., Basu, S., Kumbier, K., and Yu, B.}
+\newblock A debiased mdi feature importance measure for random forests.
+
+\bibitem{RePEc:bes:jnlasa:v:101:y:2006:p:578-590}
+{\sc Lin, Y., and Jeon, Y.}
+\newblock {Random Forests and Adaptive Nearest Neighbors}.
+\newblock {\em Journal of the American Statistical Association 101\/} (June
+  2006), 578--590.
+
+\bibitem{NIPS2013_e3796ae8}
+{\sc Louppe, G., Wehenkel, L., Sutera, A., and Geurts, P.}
+\newblock Understanding variable importances in forests of randomized trees.
+\newblock In {\em Advances in Neural Information Processing Systems\/} (2013).
+
 \bibitem{SCORNET201672}
 {\sc Scornet, E.}
 \newblock On the asymptotics of random forests.
-\newblock {\em Journal of Multivariate Analysis 146\/} (2016), 72--83.
-\newblock Special Issue on Statistical Models and Methods for High or Infinite
-  Dimensional Spaces.
+\newblock {\em Journal of Multivariate Analysis\/} (2016).
 
 \bibitem{Scornet_2015}
 {\sc Scornet, E., Biau, G., and Vert, J.-P.}
