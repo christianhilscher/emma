@@ -171,7 +171,7 @@ function get_Δ(arr::Vector{Float64}, ind::Int64, n::Int64, α::Float64, depth::
     Δ = (ind/n)*(1 - ind/n)*(Y_left - Y_rigth)^2
 
     # Return weighted splitpoint. If α = 0 then we have the standard case
-    if α == 0
+    if α == 0.0
         return Δ
     else
         return (4*(ind/n)*(1 - ind/n))^(depth^α) * Δ
