@@ -86,7 +86,7 @@ function fit!(tree::DTRegressor, X::Matrix, Y::Matrix)
 end
 
 function set_defaults!(tree::DTRegressor, Y::Matrix)
-    push!(tree.split_dimensions, nothing)
+    push!(tree.split_dimensions, -2)
     push!(tree.split_values, nothing)
     push!(tree.n_samples, size(Y, 1))
     push!(tree.mse, 0.0)
@@ -240,7 +240,7 @@ end
 function strong_selection_freq(tree::DTRegressor, var_index::Int)
     res_arr = 0
 
-    tmp = tree.split_dimensions[tree.split_dimensions .!= nothing]
+    tmp = tree.split_dimensions[tree.split_dimensions .!= -2]
     res_arr = sum(tmp .<= var_index)/length(tmp)
 
     return res_arr
