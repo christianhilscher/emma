@@ -1,12 +1,9 @@
-using Plots: layout_args
 using Pkg
-using Statistics
-using Random, Distributions, StatsBase
-using Plots
-using SparseGrids
-using BenchmarkTools
+using Random, Distributions
+using ProgressMeter
 using DataFrames
-using StatsPlots
+using Gadfly
+using StatsBase
 
 include("RFR.jl")
 include("cross_val.jl")
@@ -25,12 +22,11 @@ function sine_easy(x::Matrix, errors::Matrix)
     return Y
 end
 
-function make_data(n, d, func)
+function make_data(n, d, func, σ)
 
     x_train = rand(Uniform(0, 1), n, d)
     x_test = rand(Uniform(0, 1), n, d)
     
-    σ = 12
     d = Normal(0, σ)
     td = truncated(d, -Inf, Inf)
 
@@ -52,41 +48,40 @@ function make_data(n, d, func)
 end
 
 
-Random.seed!(68151)
-n = 2000
-d = 5
 
-x_train, x_test, y_train, y_test = make_data(n, d, "friedman")
-a_list = collect(LinRange(0, 30, 31))
-
-d1 = Dict{Symbol, Vector{Float64}}(
-    :max_features => [d],
-    :n_trees => [1000],
-    :α => [0.0])
-
-
-rf = RFR(param_dict = d1)
-fit!(rf, x_train, y_train)
-
-
+n_runs = 10
 result_arr = Array{Float64}(undef, 0, 2)
+σ = 1
 
-for i in 1:length(rf.trees)
+@showprogress for run in 1:n_runs
 
-    res = zeros(length(rf.trees[i].depth_list), 2) 
-    res[:,1] = rf.trees[i].depth_list
-    res[:,2] = rf.trees[i].pl
+    Random.seed!(68151)
+    n = 2000
+    d = 5
 
-    result_arr = vcat(result_arr, res)
+    x_train, x_test, y_train, y_test = make_data(n, d, "friedman", σ)
+    a_list = collect(LinRange(0, 30, 31))
+
+    d1 = Dict{Symbol, Vector{Float64}}(
+        :max_features => [d],
+        :n_trees => [100],
+        :α => [0.0])
+
+
+    rf = RFR(param_dict = d1)
+    fit!(rf, x_train, y_train)
+
+    for i in 1:length(rf.trees)
+
+        res = zeros(length(rf.trees[i].depth_list), 2) 
+        res[:,1] = rf.trees[i].depth_list
+        res[:,2] = rf.trees[i].pl
+
+        result_arr = vcat(result_arr, res)
+    end
 end
 
-
-# dt = DTRegressor(α=0.0)
-# fit!(dt, x_train, y_train)
-
-# result_arr = Array{Float64}(undef, length(dt.depth_list), 2)
-# result_arr[:,1] = dt.depth_list
-# result_arr[:,2] = dt.pl
+result_arr
 
 plot_data = result_arr[result_arr[:,2].!=-2, :]
 plot_data[:,2] = abs.(plot_data[:,2] .- 0.5)
@@ -113,11 +108,33 @@ function EmpiricalDistribution(data::Vector{T} where T <: Real)
 end
 
 
-plot(size=(800, 500), legend = :bottomright)
-scatter!(EmpiricalDistribution(ghi[ghi.depth.==1,:deviation_from_median]), func=cdf, alpha=0.3, xlims=(0, 0.5))
-scatter!(EmpiricalDistribution(ghi[ghi.depth.==2,:deviation_from_median]), func=cdf, alpha=0.3, xlims=(0, 0.5))
-scatter!(EmpiricalDistribution(ghi[ghi.depth.==3,:deviation_from_median]), func=cdf, alpha=0.3, xlims=(0, 0.5))
-scatter!(EmpiricalDistribution(ghi[ghi.depth.==4,:deviation_from_median]), func=cdf, alpha=0.3, xlims=(0, 0.5))
-xlabel!("Deviation from node median")
-ylabel!("CDF")
-title!("error term variance = 12")
+
+
+a1 = EmpiricalDistribution(ghi[ghi.depth.==1,:deviation_from_median])
+a2 = EmpiricalDistribution(ghi[ghi.depth.==2,:deviation_from_median])
+a3 = EmpiricalDistribution(ghi[ghi.depth.==3,:deviation_from_median])
+a4 = EmpiricalDistribution(ghi[ghi.depth.==4,:deviation_from_median])
+
+cumsum(a1.p)
+cumsum(a2.p)
+cumsum(a4.p)
+
+
+
+plot(
+    layer(x=a1.support, y=cumsum(a1.p), Geom.point, Theme(default_color=color("deep sky blue"))),
+    layer(x=a2.support, y=cumsum(a2.p), Geom.point, Theme(default_color=color("light pink"))),
+    layer(x=a3.support, y=cumsum(a3.p), Geom.point, Theme(default_color=color("orange"))),
+    layer(x=a4.support, y=cumsum(a4.p), Geom.point, Theme(default_color=color("purple")))
+)
+
+# plot(size=(800, 500), legend = :bottomright)
+# scatter!(EmpiricalDistribution(ghi[ghi.depth.==1,:deviation_from_median]), func=cdf, alpha=0.3, xlims=(0, 0.5))
+# scatter!(EmpiricalDistribution(ghi[ghi.depth.==2,:deviation_from_median]), func=cdf, alpha=0.3, xlims=(0, 0.5))
+# scatter!(EmpiricalDistribution(ghi[ghi.depth.==3,:deviation_from_median]), func=cdf, alpha=0.3, xlims=(0, 0.5))
+# scatter!(EmpiricalDistribution(ghi[ghi.depth.==4,:deviation_from_median]), func=cdf, alpha=0.3, xlims=(0, 0.5))
+# xlabel!("Deviation from node median")
+# ylabel!("CDF")
+# title!("error term variance = $σ")
+
+
