@@ -48,14 +48,15 @@ function make_data(n, d, func, σ)
 end
 
 
+Random.seed!(68151)
 
-n_runs = 10
+n_runs = 80
 result_arr = Array{Float64}(undef, 0, 2)
-σ = 1
+σ = 8
 
 @showprogress for run in 1:n_runs
 
-    Random.seed!(68151)
+
     n = 2000
     d = 5
 
@@ -85,6 +86,7 @@ result_arr
 
 plot_data = result_arr[result_arr[:,2].!=-2, :]
 plot_data[:,2] = abs.(plot_data[:,2] .- 0.5)
+plot_data[:,2] = 4 .* (plot_data[:,2]) .* (1 .- plot_data[:,2])
 
 plot_data = DataFrame(plot_data, :auto)
 rename!(plot_data, ["depth", "deviation_from_median"])
@@ -115,26 +117,19 @@ a2 = EmpiricalDistribution(ghi[ghi.depth.==2,:deviation_from_median])
 a3 = EmpiricalDistribution(ghi[ghi.depth.==3,:deviation_from_median])
 a4 = EmpiricalDistribution(ghi[ghi.depth.==4,:deviation_from_median])
 
-cumsum(a1.p)
-cumsum(a2.p)
-cumsum(a4.p)
 
+colors = ["deepskyblue", "green", "orange", "purple"]
+depths = ["1", "2", "3", "4"]
+dist = [a1, a2, a3, a4]
+p = plot();
 
+for i in 1:length(dist)
+    push!(p, layer(x=dist[i].support, y=cumsum(dist[i].p), Geom.line, Theme(default_color=color(colors[i]))));
+end
 
-plot(
-    layer(x=a1.support, y=cumsum(a1.p), Geom.point, Theme(default_color=color("deep sky blue"))),
-    layer(x=a2.support, y=cumsum(a2.p), Geom.point, Theme(default_color=color("light pink"))),
-    layer(x=a3.support, y=cumsum(a3.p), Geom.point, Theme(default_color=color("orange"))),
-    layer(x=a4.support, y=cumsum(a4.p), Geom.point, Theme(default_color=color("purple")))
-)
+push!(p, Guide.manual_color_key("Depth", depths, colors))
+push!(p, Guide.title("Error term variance = $σ"))
+push!(p, Guide.YLabel(nothing))
+push!(p, Guide.XLabel("λ"))
 
-# plot(size=(800, 500), legend = :bottomright)
-# scatter!(EmpiricalDistribution(ghi[ghi.depth.==1,:deviation_from_median]), func=cdf, alpha=0.3, xlims=(0, 0.5))
-# scatter!(EmpiricalDistribution(ghi[ghi.depth.==2,:deviation_from_median]), func=cdf, alpha=0.3, xlims=(0, 0.5))
-# scatter!(EmpiricalDistribution(ghi[ghi.depth.==3,:deviation_from_median]), func=cdf, alpha=0.3, xlims=(0, 0.5))
-# scatter!(EmpiricalDistribution(ghi[ghi.depth.==4,:deviation_from_median]), func=cdf, alpha=0.3, xlims=(0, 0.5))
-# xlabel!("Deviation from node median")
-# ylabel!("CDF")
-# title!("error term variance = $σ")
-
-
+draw(PNG("graphs/deep_sigma8.png", 20cm, 12cm, dpi=300), p)

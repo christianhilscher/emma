@@ -1,12 +1,9 @@
-using Plots: layout_args
 using Pkg
-using Statistics
-using Random, Distributions, StatsBase
-using Plots
-using SparseGrids
-using BenchmarkTools
+using Random, Distributions
+using ProgressMeter
 using DataFrames
-using StatsPlots
+using Gadfly
+using StatsBase
 
 include("RFR.jl")
 include("cross_val.jl")
@@ -25,12 +22,11 @@ function sine_easy(x::Matrix, errors::Matrix)
     return Y
 end
 
-function make_data(n, d, func)
+function make_data(n, d, func, σ)
 
     x_train = rand(Uniform(0, 1), n, d)
     x_test = rand(Uniform(0, 1), n, d)
     
-    σ = 8
     d = Normal(0, σ)
     td = truncated(d, -Inf, Inf)
 
@@ -51,18 +47,20 @@ function make_data(n, d, func)
     return x_train, x_test, y_train, y_test
 end
 
-n_runs=15
+Random.seed!(68151)
+
+n_runs=11
 max_d=50
-res_mat = zeros(max_d, n_runs+1)
-res_mat[:, 1] = 1:max_d
+σ = 1
+
+res_mat = zeros(max_d, n_runs)
 
 
-for r in 2:n_runs+1
-    # Random.seed!(68151)
+@showprogress for r in 1:n_runs
     n = 2000
     d = 10
 
-    x_train, x_test, y_train, y_test = make_data(n, d, "friedman")
+    x_train, x_test, y_train, y_test = make_data(n, d, "friedman", σ)
     a_list = collect(LinRange(0, 30, 31))
 
     d1 = Dict{Symbol, Vector{Float64}}(
@@ -99,10 +97,24 @@ for r in 2:n_runs+1
 
 end
 
-max_x = 17
-y=res_mat[1:max_x,2:end]
+
+x_max = 17
+
+res_mat
+plot_mat = transpose(res_mat[:,:])
+# plot_mat = res_mat
+plot_df = DataFrame(plot_mat[:, 1:x_max], :auto)
 
 
-plot(1:max_x, y, legend=false, size=(800, 500))
-ylims!((0, 1))
-title!("Frac. of noisy dimensions = 1/2, error term variance = 8 | Weighted")
+
+plot_df
+
+plot_df
+plot_df = stack(plot_df)
+plot_df[!, "x"] = repeat(1:x_max, inner=n_runs)
+
+
+plot_df
+gdf = groupby(plot_df, :variable)
+mean_df = combine(gdf, "value" => mean)
+
