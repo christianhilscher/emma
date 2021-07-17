@@ -5,117 +5,104 @@ using DataFrames
 using Gadfly
 using StatsBase
 
+import Cairo, Fontconfig
+
 include("RFR.jl")
 include("cross_val.jl")
+include("aux_functions.jl")
 
-function friedman(x::Matrix, errors::Matrix)
-    
-    Y = 10 .* sin.(π .* x[:,1] .* x[:,2]) .+ 20 .* (x[:,3] .- 0.5).^2 .+ 10 .* x[:,4] + 5 .* x[:,5] .+ errors
+function get_data(n_runs, max_d, σ)
 
-    return Y
-end
+    res_mat = zeros(max_d, n_runs)
 
-function sine_easy(x::Matrix, errors::Matrix)
-    
-    Y = 10 .* sin.(π .* x[:,1]) .+ errors
 
-    return Y
-end
+    @showprogress for r in 1:n_runs
+        n = 4000
+        d = 10
 
-function make_data(n, d, func, σ)
+        x_train, x_test, y_train, y_test = make_data(n, d, "friedman", σ)
+        a_list = collect(LinRange(0, 30, 31))
 
-    x_train = rand(Uniform(0, 1), n, d)
-    x_test = rand(Uniform(0, 1), n, d)
-    
-    d = Normal(0, σ)
-    td = truncated(d, -Inf, Inf)
+        d1 = Dict{Symbol, Vector{Float64}}(
+            :max_features => [d],
+            :n_trees => [30],
+            :α => [0.0])
 
-    errors_train = rand(td, n, 1)
-    errors_test = zeros(n, 1)
 
-    if func=="friedman"
-        y_train = friedman(x_train, errors_train)
-        y_test = friedman(x_test, errors_test)
-    elseif func=="sine_easy"
-        y_train = sine_easy(x_train, errors_train)
-        y_test = sine_easy(x_test, errors_test)
-    else
-        error("Provide function to compute Y")
+        rf = RFR(param_dict = d1)
+        fit!(rf, x_train, y_train)
+
+
+        result_arr = Array{Float64}(undef, 0, 2)
+
+        for i in 1:length(rf.trees)
+
+            res = zeros(length(rf.trees[i].depth_list), 2) 
+            res[:,1] = rf.trees[i].depth_list
+            res[:,2] = rf.trees[i].split_dimensions
+
+            result_arr = vcat(result_arr, res)
+        end
+
+        plot_data = result_arr[result_arr[:,2].!=-2, :]
+        plot_data[:,2] = plot_data[:,2].>5
+
+        plot_data = DataFrame(plot_data, :auto)
+        rename!(plot_data, ["depth", "noise"])
+
+        gdf = groupby(plot_data, :depth)
+        cdf2 = combine(gdf, :noise => mean)
+
+        res_mat[1:size(cdf2, 1), r] = cdf2[!, :noise_mean] 
     end
-
-
-    return x_train, x_test, y_train, y_test
+    return res_mat
 end
+
+
+function data_to_plot(res_mat::Matrix, x_max::Int, σ::Int)
+    wide_df = DataFrame(res_mat[1:x_max, :], :auto)
+    wide_df_plot = DataFrame()
+    wide_df_plot[!, "depth"] = collect(1:x_max)
+    wide_df_plot[!, "mean"] = mean.(eachrow(wide_df))
+
+
+    wide_df_plot[!, "ymin"] = minimum.(eachrow(wide_df))
+    wide_df_plot[!, "ymax"] = maximum.(eachrow(wide_df))
+    wide_df_plot[!, "σ"] = repeat([σ], size(wide_df_plot, 1))
+
+    # push!(p, layer(wide_df_plot, x=:depth, y=:mean, ymin=:ymin, ymax=:ymax, Geom.line, Geom.ribbon, alpha=[0.6], color=["Sigma = $σ"]))
+
+    return wide_df_plot
+
+end
+
 
 Random.seed!(68151)
 
-n_runs=11
+n_runs=50
 max_d=50
-σ = 0.5
 
-res_mat = zeros(max_d, n_runs)
-
-
-@showprogress for r in 1:n_runs
-    n = 3000
-    d = 10
-
-    x_train, x_test, y_train, y_test = make_data(n, d, "friedman", σ)
-    a_list = collect(LinRange(0, 30, 31))
-
-    d1 = Dict{Symbol, Vector{Float64}}(
-        :max_features => [d],
-        :n_trees => [30],
-        :α => [0.0])
+# Getting data
+res_mat1 = get_data(n_runs, max_d, 1)
+res_mat3 = get_data(n_runs, max_d, 3)
+res_mat8 = get_data(n_runs, max_d, 8)
 
 
-    rf = RFR(param_dict = d1)
-    fit!(rf, x_train, y_train)
+r1 = data_to_plot(res_mat1, x_max, 1)
+r2 = data_to_plot(res_mat3, x_max, 3)
+r3 = data_to_plot(res_mat8, x_max, 8)
 
+plot_df = vcat(r1, r2, r3)
 
-    result_arr = Array{Float64}(undef, 0, 2)
-
-    for i in 1:length(rf.trees)
-
-        res = zeros(length(rf.trees[i].depth_list), 2) 
-        res[:,1] = rf.trees[i].depth_list
-        res[:,2] = rf.trees[i].split_dimensions
-
-        result_arr = vcat(result_arr, res)
-    end
-
-    plot_data = result_arr[result_arr[:,2].!=-2, :]
-    plot_data[:,2] = plot_data[:,2].>5
-
-    plot_data = DataFrame(plot_data, :auto)
-    rename!(plot_data, ["depth", "noise"])
-
-    gdf = groupby(plot_data, :depth)
-    cdf2 = combine(gdf, :noise => mean)
-
-    res_mat[1:size(cdf2, 1), r] = cdf2[!, :noise_mean] 
-
-end
-
-
+# Plotting
 x_max = 20
+p = plot(Scale.color_discrete_manual("red", "deepskyblue", "grey"))
 
-res_mat
-wide_df = DataFrame(res_mat[1:x_max, :], :auto)
-wide_df_plot = copy(wide_df)
-wide_df_plot[!, "depth"] = collect(1:x_max)
+push!(p, layer(plot_df, x=:depth, y=:mean, ymin=:ymin, ymax=:ymax, color=:σ, Geom.line, Geom.ribbon, alpha=[0.6]))
 
 
+push!(p, Guide.YLabel("% of splits on noisy variables"))
+push!(p, Guide.XLabel("Tree Depth"))
+push!(p, Guide.title("Impact of error term variance on choice of splitting dimension"))
 
-mean_df = DataFrame("depth" => collect(1:x_max), "mean" => mean.(eachrow(wide_df)))
-
-p = plot(Coord.cartesian(xmin=0, ymin=0, xmax=x_max, ymax=0.6))
-for c in 1:n_runs
-    push!(p, layer(wide_df_plot, x=:depth, y=c, Geom.line, alpha=[0.1], Theme(default_color=color("grey"))))
-end
-
-
-push!(p, layer(mean_df, x=:depth, y=:mean, Geom.line, size=[2]))
-
-draw(PNG("graphs/wide_sigma05.png", 20cm, 12cm, dpi=300), p)
-
+draw(PNG("graphs/wide_sigmas.png", 20cm, 12cm, dpi=300), p)

@@ -118,7 +118,7 @@ a3 = EmpiricalDistribution(ghi[ghi.depth.==3,:deviation_from_median])
 a4 = EmpiricalDistribution(ghi[ghi.depth.==4,:deviation_from_median])
 
 
-colors = ["deepskyblue", "green", "orange", "purple"]
+colors = ["red", "deepskyblue", "grey", "purple"]
 depths = ["1", "2", "3", "4"]
 dist = [a1, a2, a3, a4]
 p = plot();
@@ -132,4 +132,3 @@ push!(p, Guide.title("Error term variance = $σ"))
 push!(p, Guide.YLabel(nothing))
 push!(p, Guide.XLabel("λ"))
 
-draw(PNG("graphs/deep_sigma8.png", 20cm, 12cm, dpi=300), p)
