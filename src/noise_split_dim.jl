@@ -51,13 +51,13 @@ Random.seed!(68151)
 
 n_runs=11
 max_d=50
-σ = 1
+σ = 0.5
 
 res_mat = zeros(max_d, n_runs)
 
 
 @showprogress for r in 1:n_runs
-    n = 2000
+    n = 3000
     d = 10
 
     x_train, x_test, y_train, y_test = make_data(n, d, "friedman", σ)
@@ -66,7 +66,7 @@ res_mat = zeros(max_d, n_runs)
     d1 = Dict{Symbol, Vector{Float64}}(
         :max_features => [d],
         :n_trees => [30],
-        :α => [30])
+        :α => [0.0])
 
 
     rf = RFR(param_dict = d1)
@@ -98,23 +98,24 @@ res_mat = zeros(max_d, n_runs)
 end
 
 
-x_max = 17
+x_max = 20
 
 res_mat
-plot_mat = transpose(res_mat[:,:])
-# plot_mat = res_mat
-plot_df = DataFrame(plot_mat[:, 1:x_max], :auto)
+wide_df = DataFrame(res_mat[1:x_max, :], :auto)
+wide_df_plot = copy(wide_df)
+wide_df_plot[!, "depth"] = collect(1:x_max)
 
 
 
-plot_df
+mean_df = DataFrame("depth" => collect(1:x_max), "mean" => mean.(eachrow(wide_df)))
 
-plot_df
-plot_df = stack(plot_df)
-plot_df[!, "x"] = repeat(1:x_max, inner=n_runs)
+p = plot(Coord.cartesian(xmin=0, ymin=0, xmax=x_max, ymax=0.6))
+for c in 1:n_runs
+    push!(p, layer(wide_df_plot, x=:depth, y=c, Geom.line, alpha=[0.1], Theme(default_color=color("grey"))))
+end
 
 
-plot_df
-gdf = groupby(plot_df, :variable)
-mean_df = combine(gdf, "value" => mean)
+push!(p, layer(mean_df, x=:depth, y=:mean, Geom.line, size=[2]))
+
+draw(PNG("graphs/wide_sigma05.png", 20cm, 12cm, dpi=300), p)
 
