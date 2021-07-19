@@ -1,7 +1,6 @@
 using Pkg
 using Statistics
 using Random, Distributions
-using Plots
 using SparseGrids
 using BenchmarkTools
 
@@ -22,14 +21,14 @@ function validate_model(rf1::RFR, rf2::RFR, X::Matrix, Y::Matrix)
 end
 
 
-# Random.seed!(68159)
+Random.seed!(68151)
 n = 2000
 d = 10
 
 a_list = collect(LinRange(0, 30, 31))
 
 d1 = Dict{Symbol, Vector{Float64}}(
-    :max_features => [d],
+    :max_features => [floor(d/3)],
     :n_trees => [30])
 
 d_alpha = copy(d1)
@@ -43,7 +42,7 @@ cv_alpha = cross_val(d_alpha, random_state = 0)
 cv_min = cross_val(d_min, random_state = 0)
 
 
-n_runs = 100
+n_runs = 1
 res_mat = zeros(n_runs, 6)
 
 for i in 1:n_runs
@@ -62,5 +61,4 @@ for i in 1:n_runs
 
 end
 
-mean(res_mat[:,1])
-mean(res_mat[:, 4])
+println(round(mean(res_mat[:,1])/mean(res_mat[:, 4]), digits=5))

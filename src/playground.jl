@@ -43,9 +43,9 @@ function get_mse(pred, y)
     return bias, variance, mse
 end
 
-Random.seed!(68151)
-n = 3000
-d = 20
+Random.seed!(68159)
+n = 2000
+d = 10
 
 
 x_train, x_test, y_train, y_test = make_data(n, d, "friedman", 1)

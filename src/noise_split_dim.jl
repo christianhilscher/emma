@@ -1,9 +1,9 @@
 using Pkg
 using Random, Distributions
+using Statistics
 using ProgressMeter
 using DataFrames
 using Gadfly
-using StatsBase
 
 import Cairo, Fontconfig
 
@@ -11,27 +11,56 @@ include("RFR.jl")
 include("cross_val.jl")
 include("aux_functions.jl")
 
-function get_data(n_runs, max_d, σ)
+function get_best_model(n::Int, d::Int, type::String, σ::Int, m_features::Int)
+    
+    xtrain1, xtest1, ytrain1, ytest1 = make_data(n, d, type, σ)
+
+    a_list = collect(LinRange(0, 50, 15))
+
+    d1 = Dict{Symbol, Vector{Float64}}(
+        :max_features => [m_features],
+        :n_trees => [30],
+        :α => a_list)
+
+    cv = cross_val(d1, random_state = 0)
+    fit!(cv, xtrain1, ytrain1, nfolds=3)
+
+    return(best_model(cv, "mse"))
+end
+
+
+function get_data(n_runs, max_d, σ, opt_α=false)
 
     res_mat = zeros(max_d, n_runs)
 
 
+    n = 4000
+    d = 10
+    m_features = d
+
+    if opt_α
+        # Getting the best model given error term variance
+        rf_opt = get_best_model(n, d, "friedman", σ, m_features)
+        println(rf_opt.α)
+    end
+
     @showprogress for r in 1:n_runs
-        n = 4000
-        d = 10
 
         x_train, x_test, y_train, y_test = make_data(n, d, "friedman", σ)
-        a_list = collect(LinRange(0, 30, 31))
 
-        d1 = Dict{Symbol, Vector{Float64}}(
-            :max_features => [d],
-            :n_trees => [30],
-            :α => [0.0])
+        if opt_α
+            rf = rf_opt
+            # Fitting the forest with optimally chosen α with new data
+        else
+            d1 = Dict{Symbol, Vector{Float64}}(
+                :max_features => [m_features],
+                :n_trees => [30],
+                :α => [0.0])
+            rf = RFR(param_dict = d1)
+        end
 
 
-        rf = RFR(param_dict = d1)
         fit!(rf, x_train, y_train)
-
 
         result_arr = Array{Float64}(undef, 0, 2)
 
@@ -59,18 +88,16 @@ function get_data(n_runs, max_d, σ)
 end
 
 
-function data_to_plot(res_mat::Matrix, x_max::Int, σ::Int)
+function data_to_plot(res_mat::Matrix, x_max::Int, σ)
     wide_df = DataFrame(res_mat[1:x_max, :], :auto)
     wide_df_plot = DataFrame()
     wide_df_plot[!, "depth"] = collect(1:x_max)
     wide_df_plot[!, "mean"] = mean.(eachrow(wide_df))
 
 
-    wide_df_plot[!, "ymin"] = minimum.(eachrow(wide_df))
-    wide_df_plot[!, "ymax"] = maximum.(eachrow(wide_df))
-    wide_df_plot[!, "σ"] = repeat([σ], size(wide_df_plot, 1))
-
-    # push!(p, layer(wide_df_plot, x=:depth, y=:mean, ymin=:ymin, ymax=:ymax, Geom.line, Geom.ribbon, alpha=[0.6], color=["Sigma = $σ"]))
+    wide_df_plot[!, "ymin"] = quantile.(eachrow(wide_df), 0.1)
+    wide_df_plot[!, "ymax"] = quantile.(eachrow(wide_df), 0.9)
+    wide_df_plot[!, "approach"] = repeat([String(σ)], size(wide_df_plot, 1))
 
     return wide_df_plot
 
@@ -83,26 +110,24 @@ n_runs=50
 max_d=50
 
 # Getting data
-res_mat1 = get_data(n_runs, max_d, 1)
-res_mat3 = get_data(n_runs, max_d, 3)
-res_mat8 = get_data(n_runs, max_d, 8)
+res_mat1 = get_data(n_runs, max_d, 8, false)
+res_mat1_const = get_data(n_runs, max_d, 8, true)
 
+x_max = 20
+r1 = data_to_plot(res_mat1, x_max, "unweighted")
+r2 = data_to_plot(res_mat1_const, x_max, "weighted")
 
-r1 = data_to_plot(res_mat1, x_max, 1)
-r2 = data_to_plot(res_mat3, x_max, 3)
-r3 = data_to_plot(res_mat8, x_max, 8)
-
-plot_df = vcat(r1, r2, r3)
+plot_df = vcat(r1, r2)
 
 # Plotting
-x_max = 20
-p = plot(Scale.color_discrete_manual("red", "deepskyblue", "grey"))
 
-push!(p, layer(plot_df, x=:depth, y=:mean, ymin=:ymin, ymax=:ymax, color=:σ, Geom.line, Geom.ribbon, alpha=[0.6]))
+p = plot(Scale.color_discrete_manual("grey", "#ffc000", "deepskyblue"))
+
+push!(p, layer(plot_df, x=:depth, y=:mean, ymin=:ymin, ymax=:ymax, color=:approach, Geom.line, Geom.ribbon, alpha=[0.6]))
 
 
 push!(p, Guide.YLabel("% of splits on noisy variables"))
 push!(p, Guide.XLabel("Tree Depth"))
-push!(p, Guide.title("Impact of error term variance on choice of splitting dimension"))
+push!(p, Guide.title("Comparison of approaches"))
 
-draw(PNG("graphs/wide_sigmas.png", 20cm, 12cm, dpi=300), p)
+draw(PNG("src/graphs/wide_sigmas8_comp.png", 20cm, 12cm, dpi=300), p)
