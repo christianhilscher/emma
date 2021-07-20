@@ -1,7 +1,6 @@
 using Pkg
 using Statistics
 using Random, Distributions
-using Plots
 using SparseGrids
 using BenchmarkTools
 

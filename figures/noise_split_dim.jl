@@ -7,9 +7,10 @@ using Gadfly
 
 import Cairo, Fontconfig
 
-include("RFR.jl")
-include("cross_val.jl")
-include("aux_functions.jl")
+include("/home/christian/UniMA/EMMA/src/RFR.jl")
+include("/home/christian/UniMA/EMMA/src/cross_val.jl")
+include("/home/christian/UniMA/EMMA/src/aux_functions.jl")
+
 
 function get_best_model(n::Int, d::Int, type::String, σ::Int, m_features::Int)
     
@@ -36,7 +37,7 @@ function get_data(n_runs, max_d, σ, opt_α=false)
 
     n = 4000
     d = 10
-    m_features = d
+    m_features = 3
 
     if opt_α
         # Getting the best model given error term variance
@@ -110,18 +111,20 @@ n_runs=50
 max_d=50
 
 # Getting data
-res_mat1 = get_data(n_runs, max_d, 8, false)
-res_mat1_const = get_data(n_runs, max_d, 8, true)
+res_mat1 = get_data(n_runs, max_d, 1, false)
+res_mat3 = get_data(n_runs, max_d, 3, false)
+res_mat8 = get_data(n_runs, max_d, 8, false)
 
 x_max = 20
-r1 = data_to_plot(res_mat1, x_max, "unweighted")
-r2 = data_to_plot(res_mat1_const, x_max, "weighted")
+r1 = data_to_plot(res_mat1, x_max, "1")
+r2 = data_to_plot(res_mat3, x_max, "3")
+r3 = data_to_plot(res_mat8, x_max, "8")
 
-plot_df = vcat(r1, r2)
+plot_df = vcat(r1, r2, r3)
 
 # Plotting
 
-p = plot(Scale.color_discrete_manual("grey", "#ffc000", "deepskyblue"))
+p = plot(Scale.color_discrete_manual("deepskyblue", "red", "grey"))
 
 push!(p, layer(plot_df, x=:depth, y=:mean, ymin=:ymin, ymax=:ymax, color=:approach, Geom.line, Geom.ribbon, alpha=[0.6]))
 
@@ -130,4 +133,4 @@ push!(p, Guide.YLabel("% of splits on noisy variables"))
 push!(p, Guide.XLabel("Tree Depth"))
 push!(p, Guide.title("Comparison of approaches"))
 
-draw(PNG("src/graphs/wide_sigmas8_comp.png", 20cm, 12cm, dpi=300), p)
+draw(PNG("figures/graphs/wide_sigmas.png", 20cm, 12cm, dpi=300), p)

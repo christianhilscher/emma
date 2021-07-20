@@ -160,7 +160,6 @@ function argmax_s(arr::Vector{Float64}, tree::DTRegressor, depth::Int)
 
     # Retruning decrease and index
     return Δ, ind
-    # return (4*(ind/n)*(1 - ind/n))^α * Δ, ind
 end
 
 function get_Δ(arr::Vector{Float64}, ind::Int64, n::Int64, α::Float64, depth::Int)
@@ -181,7 +180,7 @@ end
 function argmax_j(j::Int, tree::DTRegressor, X::Matrix, Y::Matrix, node_id::Int, max_mse, depth::Int)
 
 
-    if size(X, 1) > tree.min_samples_leaf
+    if size(X, 1) > 2*tree.min_samples_leaf
         # Getting dimension j
         x = X[:, j]
         order = sortperm(x, alg=InsertionSort)

@@ -46,3 +46,15 @@ function get_mse(pred, y)
 
     return bias, variance, mse
 end
+
+function compare_models(rf1::RFR, rf2::RFR, x_test::Matrix, y_test::Matrix)
+
+
+    pred1 = predict(rf1, x_test)
+    pred2 = predict(rf2, x_test)
+
+
+    println("Model 1: ", round.(get_mse(pred1, y_test), digits=5))
+    println("Model 2: ", round.(get_mse(pred2, y_test), digits=5), "\n")
+    println("Change 1 to 2: ", round.(get_mse(pred1, y_test)./get_mse(pred2, y_test), digits=5))
+end

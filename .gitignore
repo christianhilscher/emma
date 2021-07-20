@@ -30,3 +30,4 @@ src/dep/
 .vscode/
 src/data.csv
 src/graphs/*
+figures/graphs/*
