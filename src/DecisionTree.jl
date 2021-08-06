@@ -111,13 +111,11 @@ function split_node!(tree::DTRegressor, X::Matrix, Y::Matrix, depth::Int)
 
     max_mse = 0
     @inbounds for j in features
-        # println(size(X))
         max_mse = argmax_j(j, tree, X, Y, node_id, max_mse, depth)
     end
     if max_mse == 0
         return #No split was made
     end
-    
     # Make children_left
     if isnothing(tree.max_depth) || (depth < tree.max_depth)
 
@@ -180,10 +178,11 @@ end
 function argmax_j(j::Int, tree::DTRegressor, X::Matrix, Y::Matrix, node_id::Int, max_mse, depth::Int)
 
 
-    if size(X, 1) > 2*tree.min_samples_leaf
+    if (size(X, 1) > 2*tree.min_samples_leaf) && (std(Y)!=0)
         # Getting dimension j
         x = X[:, j]
-        order = sortperm(x, alg=InsertionSort)
+        order = zeros(Int, length(x))
+        sortperm!(order, x, alg=InsertionSort)
 
         x_sorted, y_sorted = x[order], vec(Y[order])
         tmp_mse, split_index = argmax_s(y_sorted, tree, depth)

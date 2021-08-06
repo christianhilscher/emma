@@ -23,39 +23,51 @@ d_base = Dict{Symbol, Vector{Float64}}(
     :max_features => [m_features],
     :n_trees => [30])
 
-d0 = copy(d_base)
-d0[:α] = [0.0]
+d_α = copy(d_base)
+d_α[:α] = [30.0]
 
-d1 = copy(d_base)
-d1[:α] = collect(LinRange(0, 30, 16))
 
-d2 = copy(d_base)
-d2[:max_depth] = floor.(collect(LinRange(5, 30, 16)))
-
-d3 = copy(d_base)
-d3[:min_samples_leaf] = collect(LinRange(0, 30, 16))
-
-cv0 = cross_val(d0, random_state=0)
-cv1 = cross_val(d1, random_state=0)
-cv2 = cross_val(d2, random_state=0)
-cv3 = cross_val(d3, random_state=0)
-
-n_list = [200, 500, 1000, 1500, 2000, 2500, 3000, 3500]
-res_mat = zeros(length(n_list), 12)
+n_list = collect(100:100:200)
+res = DataFrame()
 
 @showprogress for (n_ind, n1) in enumerate(n_list)
     x_train, x_test, y_train, y_test = make_data(n1, d, "friedman", σ)
 
-    for (ind, cv) in enumerate([cv0, cv1, cv2, cv3])
-        fit!(cv, x_train, y_train)
-        rf = best_model(cv, "mse")
-        pred = predict(rf, x_test)
+        rf0 = RFR(param_dict=d_base)
+        rf_α = RFR(param_dict=d_α)
 
-        res_mat[n_ind, (((ind-1)*3)+1):(ind*3)] .= get_mse(pred, y_test)
+        approaches = ["unweighted", "weighted"]
 
-    end
+        for (ind, rf) in enumerate([rf0, rf_α])
+            fit!(rf, x_train, y_train)
+            pred = predict(rf, x_test)
+            mse_arr = get_mse(pred, y_test)
+
+            res = vcat(res, DataFrame(bias=mse_arr[1], 
+                                        variance=mse_arr[2],
+                                        mse=mse_arr[3],
+                                        Approach=approaches[ind],
+                                        n=n1))
+        end
+
+
+        # fit!(rf0, x_train, y_train)
+        # fit!(rf_α, x_train, y_train)
+
+        # pred0 = predict(rf0, x_test)
+        # pred_α = predict(rf_α, x_test)
+
+        
+        # res_mat[n_ind, 1:3] .= get_mse(pred0, y_test)
+        # res_mat[n_ind, 4:end] .= get_mse(pred_α, y_test)
+
 end
 
+df_tmp = DataFrame(res_mat, :auto)
+rename!(df_tmp)
+df_tmp[!, :n] =n_list
 
-res_mat[:, collect(3:3:12)]
 
+p = plot()
+push!(p, layer(df_tmp, x=:n, y=:x1, Geom.line))
+push!(p, layer(df_tmp, x=:n, y=:x4, Geom.line))
