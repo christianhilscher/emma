@@ -14,5 +14,6 @@ Theme(bar_spacing=2mm))
 
 push!(p, layer(df_plot, x=:n, y=:value, color=:Approach, Geom.bar(position=:dodge)))
 push!(p, Guide.YLabel("Tree Depth"))
+push!(p, Guide.XLabel("Observations n"))
 
 draw(PNG("figures/graphs/tree_depth.png", 20cm, 12cm, dpi=300), p)

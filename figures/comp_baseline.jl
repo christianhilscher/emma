@@ -71,8 +71,8 @@ load_dict = load("data/comp_baseline_ribbon.jld2")
 res_old = load_dict["res"]
 
 res = baseline_comp(d_base, d_α, n_list, reps, res_old)
+res
 
-
-jldsave("data/comp_baseline_ribbon.jld2"; res)
+# jldsave("data/comp_baseline_ribbon.jld2"; res)
 
 
