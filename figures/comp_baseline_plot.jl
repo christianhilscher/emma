@@ -1,5 +1,5 @@
 using JLD2
-import Statistics
+using Statistics
 using DataFrames
 using Gadfly
 

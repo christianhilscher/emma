@@ -37,7 +37,7 @@ function get_data(n_runs, max_d, σ, opt_α=false)
 
     n = 4000
     d = 10
-    m_features = 
+    m_features = d
 
     if opt_α
         # Getting the best model given error term variance
