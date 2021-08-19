@@ -24,10 +24,10 @@ docs/site/
 src/Manifest.toml
 
 # Own stuff
-literature/*
+literature/
 documentation/
 src/dep/
 .vscode/
 src/data.csv
-src/graphs/*
-figures/graphs/*
+src/graphs/
+figures/graphs/
