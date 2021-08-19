@@ -1,68 +1,13 @@
 using Pkg
 using Statistics
 using Random, Distributions
-using Plots
 using SparseGrids
 using BenchmarkTools
 
 include("RFR.jl")
 include("cross_val.jl")
+include("aux_functions.jl")
 
-function friedman(x::Matrix, errors::Matrix)
-    
-    Y = 10 .* sin.(π .* x[:,1] .* x[:,2]) .+ 20 .* (x[:,3] .- 0.5).^2 .+ 10 .* x[:,4] + 5 .* x[:,5] .+ errors
-
-    return Y
-end
-
-function summing(x::Matrix, errors::Matrix)
-
-    Y = x[:,1] .+ x[:,2] .+ x[:,3] .+ x[:,4] .+ x[:,5] .+ errors
-    return Y
-end
-
-function multiplying(x::Matrix, errors::Matrix)
-
-    Y = x[:,1] .* x[:,2] .* x[:,3] .* x[:,4] .* x[:,5] .+ errors
-    return Y
-end
-
-function summing2(x::Matrix, errors::Matrix)
-
-    Y = x[:,1] .+ x[:,2] .+ x[:,3] .+ x[:,4] .+ x[:,5] .+ cumsum(x[:,6:end]).*0.01 .+ errors
-    return Y
-end
-
-function make_data(n, d, func)
-
-    x_train = rand(Uniform(0, 1), n, d)
-    x_test = rand(Uniform(0, 1), n, d)
-    
-    σ = 1
-    d = Normal(0, σ)
-    td = truncated(d, -Inf, Inf)
-
-    errors_train = rand(td, n, 1)
-    errors_test = zeros(n, 1)
-
-    if func=="friedman"
-        y_train = friedman(x_train, errors_train)
-        y_test = friedman(x_test, errors_test)
-    elseif func=="summing"
-        y_train = summing(x_train, errors_train)
-        y_test = summing(x_test, errors_test)
-    elseif func=="multiplying"
-        y_train = multiplying(x_train, errors_train)
-        y_test = multiplying(x_test, errors_test)
-    elseif func=="summing2"
-        y_train = summing2(x_train, errors_train)
-        y_test = summing2(x_test, errors_test)
-    else
-        error("Provide function to compute Y")
-    end
-
-    return x_train, x_test, y_train, y_test
-end
 
 function validation_forest(cv::cross_val)
     d_best = best_model(cv, "mse").param_dict
@@ -97,12 +42,13 @@ function get_mse(pred, y)
     return bias, variance, mse
 end
 
-Random.seed!(68151)
-n = 3000
-d = 20
+Random.seed!(68159)
+n = 2000
+d = 10
 
+x_train
 
-x_train, x_test, y_train, y_test = make_data(n, d, "friedman")
+x_train, x_test, y_train, y_test = make_data(n, d, "robot", 1)
 
 a_list = collect(LinRange(0, 30, 31))
 
@@ -146,8 +92,6 @@ println("Change to baseline: ", round.(res, digits=5), "\n")
 
 println("Average depth standard: ", average_depth(rf0))
 println("Average depth adapted: ", average_depth(rf_best))
-
-
 
 n_bins = 20
 

@@ -1,5 +1,6 @@
 using Base.Threads
 using ProgressMeter
+using SparseGrids
 include("RFR.jl")
 
 
@@ -83,7 +84,7 @@ function fit!(cv::cross_val, X::Matrix, Y::Matrix; nfolds::Int=3)
     println("Fitting ", nfolds, " folds")
 
     # Iterating over the list of dictionaries to fit the random forests
-    @showprogress for forest in cv.regressor_list
+    for forest in cv.regressor_list
 
         result_matrix = Array{Float64}(undef, nfolds, 3)
         

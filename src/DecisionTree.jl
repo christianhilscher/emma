@@ -86,7 +86,7 @@ function fit!(tree::DTRegressor, X::Matrix, Y::Matrix)
 end
 
 function set_defaults!(tree::DTRegressor, Y::Matrix)
-    push!(tree.split_dimensions, nothing)
+    push!(tree.split_dimensions, -2)
     push!(tree.split_values, nothing)
     push!(tree.n_samples, size(Y, 1))
     push!(tree.mse, 0.0)
@@ -111,13 +111,11 @@ function split_node!(tree::DTRegressor, X::Matrix, Y::Matrix, depth::Int)
 
     max_mse = 0
     @inbounds for j in features
-        # println(size(X))
         max_mse = argmax_j(j, tree, X, Y, node_id, max_mse, depth)
     end
     if max_mse == 0
         return #No split was made
     end
-    
     # Make children_left
     if isnothing(tree.max_depth) || (depth < tree.max_depth)
 
@@ -160,7 +158,6 @@ function argmax_s(arr::Vector{Float64}, tree::DTRegressor, depth::Int)
 
     # Retruning decrease and index
     return Δ, ind
-    # return (4*(ind/n)*(1 - ind/n))^α * Δ, ind
 end
 
 function get_Δ(arr::Vector{Float64}, ind::Int64, n::Int64, α::Float64, depth::Int)
@@ -181,10 +178,11 @@ end
 function argmax_j(j::Int, tree::DTRegressor, X::Matrix, Y::Matrix, node_id::Int, max_mse, depth::Int)
 
 
-    if size(X, 1) > tree.min_samples_leaf
+    if (size(X, 1) > 2*tree.min_samples_leaf) && (std(Y)!=0)
         # Getting dimension j
         x = X[:, j]
-        order = sortperm(x, alg=InsertionSort)
+        order = zeros(Int, length(x))
+        sortperm!(order, x, alg=InsertionSort)
 
         x_sorted, y_sorted = x[order], vec(Y[order])
         tmp_mse, split_index = argmax_s(y_sorted, tree, depth)
@@ -240,7 +238,7 @@ end
 function strong_selection_freq(tree::DTRegressor, var_index::Int)
     res_arr = 0
 
-    tmp = tree.split_dimensions[tree.split_dimensions .!= nothing]
+    tmp = tree.split_dimensions[tree.split_dimensions .!= -2]
     res_arr = sum(tmp .<= var_index)/length(tmp)
 
     return res_arr

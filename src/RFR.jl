@@ -136,3 +136,18 @@ function combined_splitpoints(forest::RFR)
     # Flatten array before returning
     return collect(Iterators.flatten(return_arr))
 end
+
+function lambda_depth(forest::RFR)
+    return_arr = []
+    depth_arr = []
+
+    for tree in forest.trees
+        # Only add non-terminal nodes
+        push!(return_arr, tree.pl[tree.pl .!= -2])
+        push!(depth_arr, tree.depth_list[tree.pl .!= -2])
+    end
+
+    # Flatten array before returning
+    return [collect(Iterators.flatten(return_arr)),
+            collect(Iterators.flatten(depth_arr))]
+end
