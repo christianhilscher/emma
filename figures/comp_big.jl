@@ -5,14 +5,12 @@ using ProgressMeter
 using DataFrames
 using JLD2
 
-import Cairo, Fontconfig
-
 include("/home/christian/UniMA/EMMA/src/RFR.jl")
 include("/home/christian/UniMA/EMMA/src/cross_val.jl")
 include("/home/christian/UniMA/EMMA/src/aux_functions.jl")
 
 
-function big_comp(cv_list, n_list, res=nothing)
+function big_comp(cv_list, n_list, func="friedman", res=nothing)
     
     if res===nothing
         # Initiate output DataFrame
@@ -21,8 +19,8 @@ function big_comp(cv_list, n_list, res=nothing)
     
     approaches = ["CART", "weighted", "max depth", "min samples leaf"]
 
-    @showprogress for n1 in n_list
-        x_train, x_test, y_train, y_test = make_data(n1, d, "friedman", σ)
+    for n1 in n_list
+        x_train, x_test, y_train, y_test = make_data(n1, d, func, σ)
 
         for (ind, cv) in enumerate(cv_list)
             fit!(cv, x_train, y_train)
@@ -78,14 +76,25 @@ cv_list = [cv0, cv1, cv2, cv3]
 
 
 # Load old dataframe to add runs
-load_dict = load("data/comp_big.jld2")
-res = load_dict["res"]
+# load_dict = load("data/comp_big.jld2")
+# res = load_dict["res"]
 
-reps = 10
+reps = 11
 for i in 1:reps
-    res = big_comp(cv_list, n_list, res)
+    res = big_comp(cv_list, n_list, "dp3")
+    println("\n Done with round", i)
 end
 
 
 # Uncomment to update old results by adding new ones
-# jldsave("data/comp_big.jld2"; res)
+jldsave("data/comp_dp3.jld2"; res)
+
+
+for i in 1:reps
+    res = big_comp(cv_list, n_list, "dp8")
+    println("\n Done with round", i)
+end
+
+
+# Uncomment to update old results by adding new ones
+jldsave("data/comp_dp8.jld2"; res)
