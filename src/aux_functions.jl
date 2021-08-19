@@ -21,6 +21,17 @@ function dp8(x::Matrix, errors::Matrix)
     return Y
 end
 
+function robot(x::Matrix, errors::Matrix)
+
+    x[:, 1:4] = x[:, 1:4] .* 2 .* π     # Scaling inputs
+
+    u = sum(x[:, 5:8] .* cos.(sum(x[:, 1:4], dims=2)) ,dims=2)
+    v = sum(x[:, 5:8] .* sin.(sum(x[:, 1:4], dims=2)) ,dims=2)
+
+    Y = (u.^2 .+ v.^2).^(0.5) + errors
+    return Y
+end
+
 function sine_easy(x::Matrix, errors::Matrix)
     
     Y = 10 .* sin.(π .* x[:,1]) .+ errors
@@ -51,6 +62,9 @@ function make_data(n, d, func, σ)
     elseif func=="dp8"
         y_train = dp8(x_train, errors_train)
         y_test = dp8(x_test, errors_test)
+    elseif func=="robot"
+        y_train = robot(x_train, errors_train)
+        y_test = robot(x_test, errors_test)
     else
         error("Provide function to compute Y")
     end

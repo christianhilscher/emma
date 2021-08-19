@@ -46,8 +46,9 @@ Random.seed!(68159)
 n = 2000
 d = 10
 
+x_train
 
-x_train, x_test, y_train, y_test = make_data(n, d, "dp8", 1)
+x_train, x_test, y_train, y_test = make_data(n, d, "robot", 1)
 
 a_list = collect(LinRange(0, 30, 31))
 
@@ -91,8 +92,6 @@ println("Change to baseline: ", round.(res, digits=5), "\n")
 
 println("Average depth standard: ", average_depth(rf0))
 println("Average depth adapted: ", average_depth(rf_best))
-
-
 
 n_bins = 20
 
