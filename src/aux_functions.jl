@@ -7,6 +7,20 @@ function friedman(x::Matrix, errors::Matrix)
     return Y
 end
 
+function dp3(x::Matrix, errors::Matrix)
+
+    Y = 4 .* (x[:, 1] .- 2 + 8 .* x[:, 2] .- 8 .* x[:,2].^2).^2 + (3 .- 4 .* x[:,2]).^2 + 16 .* (x[:, 3] .+ 1).^(0.5) .* (2 .* x[:,3] .- 1).^2 + errors
+
+    return Y
+end
+
+function dp8(x::Matrix, errors::Matrix)
+
+    Y = 4 .* (x[:, 1] .- 2 + 8 .* x[:, 2] .- 8 .* x[:,2].^2).^2 + (3 .- 4 .* x[:,2]).^2 + 16 .* (x[:, 3] .+ 1).^(0.5) .* (2 .* x[:,3] .- 1).^2 .+ sum(x[:, 4:8] .* (1 .+ log.(sum(x[:,1:3], dims=2))), dims=2) + errors
+
+    return Y
+end
+
 function sine_easy(x::Matrix, errors::Matrix)
     
     Y = 10 .* sin.(π .* x[:,1]) .+ errors
@@ -31,6 +45,12 @@ function make_data(n, d, func, σ)
     elseif func=="sine_easy"
         y_train = sine_easy(x_train, errors_train)
         y_test = sine_easy(x_test, errors_test)
+    elseif func=="dp3"
+        y_train = dp3(x_train, errors_train)
+        y_test = dp3(x_test, errors_test)
+    elseif func=="dp8"
+        y_train = dp8(x_train, errors_train)
+        y_test = dp8(x_test, errors_test)
     else
         error("Provide function to compute Y")
     end
