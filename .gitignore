@@ -24,7 +24,7 @@ docs/site/
 src/Manifest.toml
 
 # Own stuff
-literature/
+literature/*
 documentation/
 src/dep/
 .vscode/
