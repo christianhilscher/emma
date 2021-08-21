@@ -5,8 +5,9 @@ using DataFrames
 using Gadfly
 using StatsBase
 
-include("RFR.jl")
-include("cross_val.jl")
+include("/home/christian/UniMA/EMMA/src/RFR.jl")
+include("/home/christian/UniMA/EMMA/src/cross_val.jl")
+include("/home/christian/UniMA/EMMA/src/aux_functions.jl")
 
 function friedman(x::Matrix, errors::Matrix)
     
@@ -52,7 +53,7 @@ Random.seed!(68151)
 
 n_runs = 80
 result_arr = Array{Float64}(undef, 0, 2)
-σ = 8
+σ = 1
 
 @showprogress for run in 1:n_runs
 
@@ -82,7 +83,7 @@ result_arr = Array{Float64}(undef, 0, 2)
     end
 end
 
-result_arr
+
 
 plot_data = result_arr[result_arr[:,2].!=-2, :]
 plot_data[:,2] = abs.(plot_data[:,2] .- 0.5)
@@ -91,10 +92,10 @@ plot_data[:,2] = 4 .* (plot_data[:,2]) .* (1 .- plot_data[:,2])
 plot_data = DataFrame(plot_data, :auto)
 rename!(plot_data, ["depth", "deviation_from_median"])
 
-gdf = groupby(plot_data, :depth)
-cdf2 = combine(gdf, :deviation_from_median => mean)
+# gdf = groupby(plot_data, :depth)
+# cdf2 = combine(gdf, :deviation_from_median => mean)
 
-println(cdf2)
+jldsave("data/deep_sigma1.jld2"; plot_data)
 
 
 
@@ -118,7 +119,7 @@ a3 = EmpiricalDistribution(ghi[ghi.depth.==3,:deviation_from_median])
 a4 = EmpiricalDistribution(ghi[ghi.depth.==4,:deviation_from_median])
 
 
-colors = ["red", "deepskyblue", "grey", "purple"]
+colors = ["#264653", "#E7C15F", "#2A9D8F", "#C33149"]
 depths = ["1", "2", "3", "4"]
 dist = [a1, a2, a3, a4]
 p = plot();
@@ -132,3 +133,7 @@ push!(p, Guide.title("Error term variance = $σ"))
 push!(p, Guide.YLabel(nothing))
 push!(p, Guide.XLabel("λ"))
 
+push!(p, Theme(key_position=:none, line_width=0.6mm))
+push!(p, Theme(line_width=0.6mm))
+
+draw(PNG("figures/graphs/deep_sigma1.png", 20cm, 12cm, dpi=300), p1)

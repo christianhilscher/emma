@@ -8,10 +8,11 @@ import Cairo, Fontconfig
 
 load_dict = load("data/noise_split_dim.jld2")
 p1 = load_dict["plot_df"]
+rename!(p1, "approach" => "σ")
 
-p = plot(Scale.color_discrete_manual("#E7C15F", "#C33149", "#2A9D8F"), Theme(line_width=0.5mm))
+p = plot(Scale.color_discrete_manual("#E7C15F", "#C33149", "#2A9D8F"))
 
-push!(p, layer(p1, x=:depth, y=:mean, ymin=:ymin, ymax=:ymax, color=:approach, Geom.line, Geom.ribbon, alpha=[0.6]))
+push!(p, layer(p1, x=:depth, y=:mean, ymin=:ymin, ymax=:ymax, color=:σ, Geom.line, Geom.ribbon, alpha=[0.6]))
 
 
 push!(p, Guide.YLabel("% of splits on noisy variables"))
