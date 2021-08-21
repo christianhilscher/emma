@@ -83,46 +83,13 @@ function get_data(n_runs, max_d, σ, parameter::Symbol)
 end
 
 
-function data_to_plot(res_mat::Matrix, x_max::Int, σ)
-    wide_df = DataFrame(res_mat[1:x_max, :], :auto)
-    wide_df_plot = DataFrame()
-    wide_df_plot[!, "depth"] = collect(1:x_max)
-    wide_df_plot[!, "mean"] = mean.(eachrow(wide_df))
-
-
-    wide_df_plot[!, "ymin"] = quantile.(eachrow(wide_df), 0.1)
-    wide_df_plot[!, "ymax"] = quantile.(eachrow(wide_df), 0.9)
-    wide_df_plot[!, "Approach"] = repeat([String(σ)], size(wide_df_plot, 1))
-
-    return wide_df_plot
-
-end
-
-
 Random.seed!(68151)
 
 n_runs=25
 max_d=50
 
 # Getting data
-res_mat1, rf_α = get_data(n_runs, max_d, 8, :α)
-res_mat1_const, rf_const = get_data(n_runs, max_d, 8, :CART)
+res_mat1, rf_α = get_data(n_runs, max_d, 3, :α)
+res_mat1_const, rf_const = get_data(n_runs, max_d, 3, :CART)
 
-x_max = 20
-r1 = data_to_plot(res_mat1, x_max, "weighted")
-r2 = data_to_plot(res_mat1_const, x_max, "CART")
-
-plot_df = vcat(r1, r2)
-# Plotting
-
-p = plot(Scale.color_discrete_manual("#ffc000", "#011627"))
-
-push!(p, layer(plot_df, x=:depth, y=:mean, ymin=:ymin, ymax=:ymax, color=:Approach, Geom.line, Geom.ribbon, alpha=[0.6]))
-
-
-push!(p, Guide.YLabel("% of splits on noisy variables"))
-push!(p, Guide.XLabel("Tree Depth"))
-push!(p, Guide.title("σ = 8"))
-push!(p, Guide.yticks(ticks=0:0.2:0.8))
-
-draw(PNG("/home/christian/UniMA/EMMA/figures/graphs/wide_sigmas8.png", 20cm, 12cm, dpi=300), p)
+jldsave("data/wide_sigma3.jld2"; res)

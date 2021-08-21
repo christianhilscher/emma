@@ -5,9 +5,6 @@ using Random, Distributions
 using Statistics
 using ProgressMeter
 using DataFrames
-using Gadfly
-
-import Cairo, Fontconfig
 
 include("/home/christian/UniMA/EMMA/src/RFR.jl")
 include("/home/christian/UniMA/EMMA/src/cross_val.jl")
@@ -123,16 +120,4 @@ r2 = data_to_plot(res_mat3, x_max, "3")
 r3 = data_to_plot(res_mat8, x_max, "8")
 
 plot_df = vcat(r1, r2, r3)
-
-# Plotting
-
-p = plot(Scale.color_discrete_manual("deepskyblue", "red", "grey"))
-
-push!(p, layer(plot_df, x=:depth, y=:mean, ymin=:ymin, ymax=:ymax, color=:approach, Geom.line, Geom.ribbon, alpha=[0.6]))
-
-
-push!(p, Guide.YLabel("% of splits on noisy variables"))
-push!(p, Guide.XLabel("Tree Depth"))
-push!(p, Guide.title("Comparison of approaches"))
-
-draw(PNG("figures/graphs/wide_sigmas.png", 20cm, 12cm, dpi=300), p)
+jldsave("data/noise_split_dim.jld2"; plot_df)

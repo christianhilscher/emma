@@ -31,17 +31,18 @@ function make_plot(df::DataFrame, variable::String)
     y_max = Symbol(string(variable, "_max"))
 
 
-    p = plot(Scale.color_discrete_manual("#011627", "#ffc000", "#E71D36", "#0F7173"),Guide.xticks(ticks=[0, 5000, 10000, 15000]))
+    p = plot(Scale.color_discrete_manual("#264653", "#E7C15F", "#2A9D8F", "#C33149"),Guide.xticks(ticks=[0, 5000, 10000, 15000]))
     push!(p, layer(df, x=:n, y=y_mean, ymin=y_min, ymax=y_max, color=:Approach, Geom.line, Geom.ribbon, alpha=[0.6]))
 
     push!(p, Guide.YLabel(""))
     push!(p, Guide.XLabel("Observations n"))
 
     if variable!="mse"
-        push!(p, Theme(key_position=:none))
+        push!(p, Theme(key_position=:none, line_width=0.6mm))
         push!(p, Guide.title(uppercasefirst(variable)))
     else
         push!(p, Guide.title(uppercase(variable)))
+        push!(p, Theme(line_width=0.6mm))
     end
 
     return p
@@ -53,10 +54,12 @@ p3 = make_plot(plot_df, "mse")
 
 
 ### Output figure
-# draw(PNG("figures/graphs/comp/friedman_variance.png", 20cm, 12cm, dpi=300), p)
+draw(PNG("figures/graphs/comp/friedman_bias.png", 20cm, 12cm, dpi=300), p1)
+draw(PNG("figures/graphs/comp/friedman_variance.png", 20cm, 12cm, dpi=300), p2)
+draw(PNG("figures/graphs/comp/friedman_mse.png", 22cm, 12cm, dpi=300), p3)
+
 
 ### Make table
-
 function comp_table(df::DataFrame)
     
     # Selecting those values with CART Approach as baseline
