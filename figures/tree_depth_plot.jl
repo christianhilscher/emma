@@ -9,7 +9,7 @@ df_tmp = tmp_dict["df_tmp"]
 df_plot = stack(df_tmp)
 rename!(df_plot, "variable" => "Approach")
 
-p = plot(Scale.color_discrete_manual("grey", "#ffc000"), Scale.x_discrete,
+p = plot(Scale.color_discrete_manual("#011627", "#ffc000"), Scale.x_discrete,
 Theme(bar_spacing=2mm))
 
 push!(p, layer(df_plot, x=:n, y=:value, color=:Approach, Geom.bar(position=:dodge)))

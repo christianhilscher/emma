@@ -1,3 +1,5 @@
+###### Figure 3 in Finfin
+
 using Pkg
 using Random, Distributions
 using Statistics

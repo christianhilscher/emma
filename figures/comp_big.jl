@@ -73,28 +73,45 @@ cv3 = cross_val(d3, random_state=0)
 
 n_list = [250, 500, 1000, 2000, 4000, 8000, 16000]
 cv_list = [cv0, cv1, cv2, cv3]
+reps = 10
 
 
-# Load old dataframe to add runs
-# load_dict = load("data/comp_big.jld2")
-# res = load_dict["res"]
+## Make Friedman simulation
+res_friedman = big_comp(cv_list, n_list, "friedman")
 
-reps = 11
 for i in 1:reps
-    res = big_comp(cv_list, n_list, "dp3")
+    res_friedman = big_comp(cv_list, n_list, "friedman", res_friedman)
     println("\n Done with round", i)
 end
 
+jldsave("data/comp_friedman.jld2"; res)
 
-# Uncomment to update old results by adding new ones
-jldsave("data/comp_dp3.jld2"; res)
-
+## Make DP3 simulation
+res_dp3 = big_comp(cv_list, n_list, "dp3")
 
 for i in 1:reps
-    res = big_comp(cv_list, n_list, "dp8")
+    res_dp3 = big_comp(cv_list, n_list, "dp3", res_dp3)
     println("\n Done with round", i)
 end
 
+jldsave("data/comp_dp3.jld2"; res_dp3)
 
-# Uncomment to update old results by adding new ones
+## Make DP8 simulation
+res_dp8 = big_comp(cv_list, n_list, "dp8")
+
+for i in 1:reps
+    res_dp8 = big_comp(cv_list, n_list, "dp8", res_dp8)
+    println("\n Done with round", i)
+end
+
 jldsave("data/comp_dp8.jld2"; res)
+
+## Make robot simulation
+res_robot = big_comp(cv_list, n_list, "robot")
+
+for i in 1:reps
+    res_robot = big_comp(cv_list, n_list, "robot", res_robot)
+    println("\n Done with round", i)
+end
+
+jldsave("data/comp_robot.jld2"; res)

@@ -22,17 +22,38 @@ plot_df = combine(gdf, :bias => mean,
                         :mse => (x -> quantile(x, 0.95)) => :mse_max)
 
 
-p = plot(Scale.color_discrete_manual("#011627", "#ffc000", "#E71D36", "#0F7173"),Guide.xticks(ticks=[0, 5000, 10000, 15000]))
-push!(p, layer(plot_df, x=:n, y=:variance_mean, ymin=:variance_min, ymax=:variance_max, color=:Approach, Geom.line, Geom.ribbon, alpha=[0.6]))
 
-push!(p, Guide.YLabel(""))
-push!(p, Guide.XLabel("Observations n"))
-push!(p, Guide.title("Variance"))
 
-push!(p, Theme(key_position=:none))
+function make_plot(df::DataFrame, variable::String)
+
+    y_mean = Symbol(string(variable, "_mean"))
+    y_min = Symbol(string(variable, "_min"))
+    y_max = Symbol(string(variable, "_max"))
+
+
+    p = plot(Scale.color_discrete_manual("#011627", "#ffc000", "#E71D36", "#0F7173"),Guide.xticks(ticks=[0, 5000, 10000, 15000]))
+    push!(p, layer(df, x=:n, y=y_mean, ymin=y_min, ymax=y_max, color=:Approach, Geom.line, Geom.ribbon, alpha=[0.6]))
+
+    push!(p, Guide.YLabel(""))
+    push!(p, Guide.XLabel("Observations n"))
+
+    if variable!="mse"
+        push!(p, Theme(key_position=:none))
+        push!(p, Guide.title(uppercasefirst(variable)))
+    else
+        push!(p, Guide.title(uppercase(variable)))
+    end
+
+    return p
+end
+
+p1 = make_plot(plot_df, "bias")
+p2 = make_plot(plot_df, "variance")
+p3 = make_plot(plot_df, "mse")
+
 
 ### Output figure
-draw(PNG("figures/graphs/comp/friedman_variance.png", 20cm, 12cm, dpi=300), p)
+# draw(PNG("figures/graphs/comp/friedman_variance.png", 20cm, 12cm, dpi=300), p)
 
 ### Make table
 
@@ -49,9 +70,9 @@ function comp_table(df::DataFrame)
     out_df = leftjoin(df, base_df[!, [:n, :bias_base, :variance_base, :mse_base]], on=:n)
 
     # Getting percentages
-    out_df[!, :bias_diff] = round.(out_df[!, :bias_mean] ./ out_df[!, :bias_base] .- 1, digits = 3)
-    out_df[!, :variance_diff] = round.(out_df[!, :variance_mean] ./ out_df[!, :variance_base] .- 1, digits=3)
-    out_df[!, :mse_diff] = round.(out_df[!, :mse_mean] ./ out_df[!, :mse_base] .- 1, digits = 3)
+    out_df[!, :bias_diff] = round.((out_df[!, :bias_mean] ./ out_df[!, :bias_base] .- 1) .* 100, digits = 1)
+    out_df[!, :variance_diff] = round.((out_df[!, :variance_mean] ./ out_df[!, :variance_base] .- 1) .* 100, digits=1)
+    out_df[!, :mse_diff] = round.((out_df[!, :mse_mean] ./ out_df[!, :mse_base] .- 1) .* 100, digits = 1)
     
     return out_df[!, [:n, :Approach, :bias_diff, :variance_diff, :mse_diff]]
 end
@@ -62,5 +83,8 @@ tmp = comp_table(plot_df)
 
 variable = :mse_diff
 out_table = unstack(tmp[!, [:n, :Approach, variable]], :Approach, variable)
+println(out_table)
 
-CSV.write("figures/graphs/comp/friedman_mse.csv", out_table)
+perc = string.(out_table[!, ["weighted", "max depth", "min samples leaf"]], "%")
+println(hcat(out_table[!, [:n, :CART]], perc))
+CSV.write("figures/graphs/comp/friedman_variance.csv", hcat(out_table[!, [:n, :CART]], perc))

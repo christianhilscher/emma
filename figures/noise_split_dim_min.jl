@@ -1,3 +1,5 @@
+#### Figure 5 - depth chapter; comaprison between weighted and and CART
+
 using Pkg
 using Random, Distributions
 using Statistics
@@ -7,11 +9,11 @@ using Gadfly
 
 import Cairo, Fontconfig
 
-include("RFR.jl")
-include("cross_val.jl")
-include("aux_functions.jl")
+include("/home/christian/UniMA/EMMA/src/RFR.jl")
+include("/home/christian/UniMA/EMMA/src/cross_val.jl")
+include("/home/christian/UniMA/EMMA/src/aux_functions.jl")
 
-function get_best_model(n::Int, d::Int, type::String, σ::Float64, m_features::Int, parameter::Symbol)
+function get_best_model(n::Int, d::Int, type::String, σ::Number, m_features::Int, parameter::Symbol)
     
     xtrain1, xtest1, ytrain1, ytest1 = make_data(n, d, type, σ)
 
@@ -21,7 +23,11 @@ function get_best_model(n::Int, d::Int, type::String, σ::Float64, m_features::I
         :max_features => [m_features],
         :n_trees => [30])
 
-    d1[parameter] = a_list 
+    if parameter == :CART
+        d1[:α] = [0.0]
+    else
+        d1[parameter] = a_list 
+    end
 
     cv = cross_val(d1, random_state = 0)
     fit!(cv, xtrain1, ytrain1, nfolds=3)
@@ -86,7 +92,7 @@ function data_to_plot(res_mat::Matrix, x_max::Int, σ)
 
     wide_df_plot[!, "ymin"] = quantile.(eachrow(wide_df), 0.1)
     wide_df_plot[!, "ymax"] = quantile.(eachrow(wide_df), 0.9)
-    wide_df_plot[!, "approach"] = repeat([String(σ)], size(wide_df_plot, 1))
+    wide_df_plot[!, "Approach"] = repeat([String(σ)], size(wide_df_plot, 1))
 
     return wide_df_plot
 
@@ -99,31 +105,24 @@ n_runs=25
 max_d=50
 
 # Getting data
-res_mat1, rf_α = get_data(n_runs, max_d, 1, :α)
-res_mat1_const, rf_min = get_data(n_runs, max_d, 1, :min_samples_leaf)
+res_mat1, rf_α = get_data(n_runs, max_d, 8, :α)
+res_mat1_const, rf_const = get_data(n_runs, max_d, 8, :CART)
 
 x_max = 20
 r1 = data_to_plot(res_mat1, x_max, "weighted")
-r2 = data_to_plot(res_mat1_const, x_max, "min samples")
+r2 = data_to_plot(res_mat1_const, x_max, "CART")
 
 plot_df = vcat(r1, r2)
-
 # Plotting
 
-p = plot(Scale.color_discrete_manual("#ffc000", "grey", "deepskyblue"))
+p = plot(Scale.color_discrete_manual("#ffc000", "#011627"))
 
-push!(p, layer(plot_df, x=:depth, y=:mean, ymin=:ymin, ymax=:ymax, color=:approach, Geom.line, Geom.ribbon, alpha=[0.6]))
+push!(p, layer(plot_df, x=:depth, y=:mean, ymin=:ymin, ymax=:ymax, color=:Approach, Geom.line, Geom.ribbon, alpha=[0.6]))
 
 
 push!(p, Guide.YLabel("% of splits on noisy variables"))
 push!(p, Guide.XLabel("Tree Depth"))
-push!(p, Guide.title("Comparison of approaches"))
+push!(p, Guide.title("σ = 8"))
+push!(p, Guide.yticks(ticks=0:0.2:0.8))
 
-
-# draw(PNG("graphs/wide_sigmas1_alpha_min.png", 20cm, 12cm, dpi=300), p)
-
-
-
-
-x_train, x_test, y_train, y_test = make_data(2000, 10, "friedman", 1)
-compare_models(rf_α, rf_min, x_test, y_test)
+draw(PNG("/home/christian/UniMA/EMMA/figures/graphs/wide_sigmas8.png", 20cm, 12cm, dpi=300), p)
