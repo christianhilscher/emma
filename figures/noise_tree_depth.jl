@@ -53,7 +53,7 @@ Random.seed!(68151)
 
 n_runs = 80
 result_arr = Array{Float64}(undef, 0, 2)
-σ = 1
+σ = 8
 
 @showprogress for run in 1:n_runs
 
@@ -92,48 +92,4 @@ plot_data[:,2] = 4 .* (plot_data[:,2]) .* (1 .- plot_data[:,2])
 plot_data = DataFrame(plot_data, :auto)
 rename!(plot_data, ["depth", "deviation_from_median"])
 
-# gdf = groupby(plot_data, :depth)
-# cdf2 = combine(gdf, :deviation_from_median => mean)
-
-jldsave("data/deep_sigma1.jld2"; plot_data)
-
-
-
-ghi = plot_data[plot_data.depth .< 5, :]
-
-function EmpiricalDistribution(data::Vector{T} where T <: Real)
-    sort!(data) #sort the observations
-    empirical_cdf = ecdf(data) #create empirical cdf
-    data_clean = unique(data) #remove duplicates to avoid allunique error
-    cdf_data = empirical_cdf.(data_clean) #apply ecdf to data
-    pmf_data = vcat(cdf_data[1],diff(cdf_data)) #create pmf from the cdf
-    DiscreteNonParametric(data_clean,pmf_data) #define distribution
-end
-
-
-
-
-a1 = EmpiricalDistribution(ghi[ghi.depth.==1,:deviation_from_median])
-a2 = EmpiricalDistribution(ghi[ghi.depth.==2,:deviation_from_median])
-a3 = EmpiricalDistribution(ghi[ghi.depth.==3,:deviation_from_median])
-a4 = EmpiricalDistribution(ghi[ghi.depth.==4,:deviation_from_median])
-
-
-colors = ["#264653", "#E7C15F", "#2A9D8F", "#C33149"]
-depths = ["1", "2", "3", "4"]
-dist = [a1, a2, a3, a4]
-p = plot();
-
-for i in 1:length(dist)
-    push!(p, layer(x=dist[i].support, y=cumsum(dist[i].p), Geom.line, Theme(default_color=color(colors[i]))));
-end
-
-push!(p, Guide.manual_color_key("Depth", depths, colors))
-push!(p, Guide.title("Error term variance = $σ"))
-push!(p, Guide.YLabel(nothing))
-push!(p, Guide.XLabel("λ"))
-
-push!(p, Theme(key_position=:none, line_width=0.6mm))
-push!(p, Theme(line_width=0.6mm))
-
-draw(PNG("figures/graphs/deep_sigma1.png", 20cm, 12cm, dpi=300), p1)
+jldsave("data/deep_sigma8.jld2"; plot_data)

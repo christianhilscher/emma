@@ -1,13 +1,10 @@
-#### Figure 5 - depth chapter; comaprison between weighted and and CART
+#### Figure 5 - depth chapter; comparison between weighted and and CART
 
 using Pkg
 using Random, Distributions
 using Statistics
 using ProgressMeter
-using DataFrames
-using Gadfly
-
-import Cairo, Fontconfig
+using JLD2
 
 include("/home/christian/UniMA/EMMA/src/RFR.jl")
 include("/home/christian/UniMA/EMMA/src/cross_val.jl")
@@ -89,7 +86,9 @@ n_runs=25
 max_d=50
 
 # Getting data
-res_mat1, rf_α = get_data(n_runs, max_d, 3, :α)
-res_mat1_const, rf_const = get_data(n_runs, max_d, 3, :CART)
+res_mat1, rf_α = get_data(n_runs, max_d, 8, :α)
+res_mat1_const, rf_const = get_data(n_runs, max_d, 8, :CART)
 
-jldsave("data/wide_sigma3.jld2"; res)
+out_list = [res_mat1, res_mat1_const]
+
+jldsave("data/wide_sigma8.jld2"; out_list)
