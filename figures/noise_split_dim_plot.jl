@@ -20,7 +20,7 @@ push!(p, layer(p1, x=:depth, y=:mean, ymin=:ymin, ymax=:ymax, color="σ^2", Geom
 
 push!(p, Guide.YLabel("% of splits on noisy variables"))
 push!(p, Guide.XLabel("Tree Depth"))
-push!(p, Guide.title("Comparison of approaches"))
+# push!(p, Guide.title("Comparison of approaches"))
 push!(p, Theme(line_width=0.6mm))
 
 draw(PNG("figures/graphs/wide_sigmas.png", 20cm, 12cm, dpi=300), p)
