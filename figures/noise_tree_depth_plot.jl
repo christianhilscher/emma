@@ -10,7 +10,7 @@ using CSV
 import Cairo, Fontconfig
 
 ### Load data
-load_dict = load("data/deep_sigma8.jld2")
+load_dict = load("data/deep_sigma1.jld2")
 plot_data = load_dict["plot_data"]
 
 
@@ -47,10 +47,10 @@ for i in 1:length(dist)
 end
 
 push!(p, Guide.manual_color_key("Depth", depths, colors))
-push!(p, Guide.title("Error term variance = 8"))
-push!(p, Guide.YLabel(nothing))
+push!(p, Guide.title("Error term variance = 1"))
+push!(p, Guide.YLabel("CFD"))
 push!(p, Guide.XLabel("λ"))
 # push!(p, Theme(line_width=1cm))
 # push!(p, Theme(key_position=:none))
 
-draw(PNG("figures/graphs/deep_sigma8.png", 20cm, 12cm, dpi=300), p)
+draw(PNG("figures/graphs/deep_sigma1.png", 20cm, 12cm, dpi=300), p)

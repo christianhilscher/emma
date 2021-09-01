@@ -9,7 +9,7 @@ using CSV
 import Cairo, Fontconfig
 
 ### Load data
-load_dict = load("data/wide_sigma8.jld2")
+load_dict = load("data/wide_sigma3.jld2")
 res_mat1 = load_dict["out_list"][1]
 res_mat1_const = load_dict["out_list"][2]
 
@@ -43,11 +43,11 @@ push!(p, layer(plot_df, x=:depth, y=:mean, ymin=:ymin, ymax=:ymax, color="Approa
 
 push!(p, Guide.YLabel("% of splits on noisy variables"))
 push!(p, Guide.XLabel("Tree Depth"))
-push!(p, Guide.title("σ^2 = 8"))
+push!(p, Guide.title("Error term variance = 3"))
 push!(p, Guide.yticks(ticks=0:0.25:0.8))
-# push!(p, Theme(key_position=:none, line_width=0.8mm))
-push!(p, Theme(line_width=0.8mm))
+push!(p, Theme(key_position=:none, line_width=0.8mm))
+# push!(p, Theme(line_width=0.8mm))
 
 
 
-draw(PNG("/home/christian/UniMA/EMMA/figures/graphs/wide_sigmas8.png", 20cm, 12cm, dpi=300), p)
+draw(PNG("/home/christian/UniMA/EMMA/figures/graphs/wide_sigmas3.png", 20cm, 12cm, dpi=300), p)

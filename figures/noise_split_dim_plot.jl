@@ -1,6 +1,7 @@
 ## Figure 2
 
 using Pkg
+using DataFrames
 using Gadfly
 using JLD2
 
@@ -12,7 +13,7 @@ load_dict = load("data/noise_split_dim.jld2")
 p1 = load_dict["plot_df"]
 rename!(p1, "approach" => "σ^2")
 
-p = plot(Scale.color_discrete_manual("#E7C15F", "#C33149", "#2A9D8F"))
+p = plot(Scale.color_discrete_manual("#E7C15F", "#C33149", "#2A9D8F"), Guide.colorkey(title="σ<sub>ϵ</sub> <sup>2</sup>"))
 
 push!(p, layer(p1, x=:depth, y=:mean, ymin=:ymin, ymax=:ymax, color="σ^2", Geom.line, Geom.ribbon, alpha=[0.6]))
 
