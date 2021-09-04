@@ -2,12 +2,16 @@ using JLD2
 using DataFrames
 using Gadfly
 
+import Cairo, Fontconfig
+
 tmp_dict = load("data/tree_depth.jld2")
 df_tmp = tmp_dict["df_tmp"]
 
 
 df_plot = stack(df_tmp)
 rename!(df_plot, "variable" => "Approach")
+
+df_plot.Approach .= replace.(df_plot.Approach, "unweighted" => "CART")
 
 p = plot(Scale.color_discrete_manual("#264653", "#E7C15F"), Scale.x_discrete,
 Theme(bar_spacing=2mm))
