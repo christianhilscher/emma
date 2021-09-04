@@ -1,4 +1,4 @@
-## Figure 5
+#File for plotting Figure 5
 
 using JLD2
 using Statistics

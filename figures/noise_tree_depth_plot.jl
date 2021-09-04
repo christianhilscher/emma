@@ -1,4 +1,4 @@
-## Figure 1
+# File for plotting Figure 2
 
 using JLD2
 using Statistics, Distributions
@@ -27,19 +27,20 @@ end
 
 
 
-
+# Get CDFs for different depths
 a1 = EmpiricalDistribution(tmp[tmp.depth.==1,:deviation_from_median])
 a2 = EmpiricalDistribution(tmp[tmp.depth.==2,:deviation_from_median])
 a3 = EmpiricalDistribution(tmp[tmp.depth.==3,:deviation_from_median])
 a4 = EmpiricalDistribution(tmp[tmp.depth.==4,:deviation_from_median])
 
 
+# Add colors
 colors = ["#264653", "#E7C15F", "#2A9D8F", "#C33149"]
 depths = ["1", "2", "3", "4"]
 dist = [a1, a2, a3, a4]
 
 
-
+# Plot
 p = plot(Guide.xticks(ticks=collect(0:0.2:1)), Guide.yticks(ticks=collect(0:0.2:1)));
 
 for i in 1:length(dist)

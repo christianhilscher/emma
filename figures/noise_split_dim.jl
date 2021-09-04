@@ -1,4 +1,4 @@
-###### Figure 3 in Finfin
+# File for generating data for Figure 3
 
 using Pkg
 using Random, Distributions
@@ -31,9 +31,10 @@ end
 
 function get_data(n_runs, max_d, σ, opt_α=false)
 
+    # Allocate space for results
     res_mat = zeros(max_d, n_runs)
 
-
+    # Setting parameters
     n = 4000
     d = 10
     m_features = d
@@ -49,9 +50,10 @@ function get_data(n_runs, max_d, σ, opt_α=false)
         x_train, x_test, y_train, y_test = make_data(n, d, "friedman", σ)
 
         if opt_α
-            rf = rf_opt
             # Fitting the forest with optimally chosen α with new data
+            rf = rf_opt
         else
+            # Else choose CART
             d1 = Dict{Symbol, Vector{Float64}}(
                 :max_features => [m_features],
                 :n_trees => [30],
@@ -66,6 +68,7 @@ function get_data(n_runs, max_d, σ, opt_α=false)
 
         for i in 1:length(rf.trees)
 
+            # Save depth and splitting dimension
             res = zeros(length(rf.trees[i].depth_list), 2) 
             res[:,1] = rf.trees[i].depth_list
             res[:,2] = rf.trees[i].split_dimensions
@@ -73,13 +76,18 @@ function get_data(n_runs, max_d, σ, opt_α=false)
             result_arr = vcat(result_arr, res)
         end
 
+        # Only comparing non-terminal nodes
         plot_data = result_arr[result_arr[:,2].!=-2, :]
+        # Noisy dimensions are all regressors above 5
         plot_data[:,2] = plot_data[:,2].>5
 
+        # Save figures as dataframe
         plot_data = DataFrame(plot_data, :auto)
         rename!(plot_data, ["depth", "noise"])
 
+        # Grouping them by depth
         gdf = groupby(plot_data, :depth)
+        # Getting mean of fraction split on noise
         cdf2 = combine(gdf, :noise => mean)
 
         res_mat[1:size(cdf2, 1), r] = cdf2[!, :noise_mean] 
@@ -94,9 +102,9 @@ function data_to_plot(res_mat::Matrix, x_max::Int, σ)
     wide_df_plot[!, "depth"] = collect(1:x_max)
     wide_df_plot[!, "mean"] = mean.(eachrow(wide_df))
 
-
-    wide_df_plot[!, "ymin"] = quantile.(eachrow(wide_df), 0.1)
-    wide_df_plot[!, "ymax"] = quantile.(eachrow(wide_df), 0.9)
+    # Getting minimum and maximum value of fraction in addition to mean
+    wide_df_plot[!, "ymin"] = minimum.(eachrow(wide_df))
+    wide_df_plot[!, "ymax"] = maximum.(eachrow(wide_df))
     wide_df_plot[!, "approach"] = repeat([String(σ)], size(wide_df_plot, 1))
 
     return wide_df_plot
@@ -104,16 +112,18 @@ function data_to_plot(res_mat::Matrix, x_max::Int, σ)
 end
 
 
+# Set seed for reproducability
 Random.seed!(68151)
 
-n_runs=50
-max_d=50
+n_runs=100
+max_d=50 #Max depth allowed - need to set this parameter; max acieved is around 30
 
 # Getting data
 res_mat1 = get_data(n_runs, max_d, 1, false)
 res_mat3 = get_data(n_runs, max_d, 3, false)
 res_mat8 = get_data(n_runs, max_d, 8, false)
 
+# Figure plots until depth of 20
 x_max = 20
 r1 = data_to_plot(res_mat1, x_max, "1")
 r2 = data_to_plot(res_mat3, x_max, "3")

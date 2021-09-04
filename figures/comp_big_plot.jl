@@ -1,3 +1,5 @@
+# File for writing comparison table results
+
 using JLD2
 using Statistics
 using DataFrames

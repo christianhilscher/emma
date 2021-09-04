@@ -1,3 +1,5 @@
+# File for generating data for comparison table
+
 using Pkg
 using Random, Distributions
 using Statistics
@@ -47,7 +49,7 @@ d = 10
 m_features = d
 cv_parameter = collect(1:5:31)
 
-
+# Making dictionaries for different approaches
 d_base = Dict{Symbol, Vector{Float64}}(
     :max_features => [m_features],
     :n_trees => [30])
@@ -64,16 +66,19 @@ d2[:max_depth] = cv_parameter[2:end] # Have to start one above, otherwise depth 
 d3 = copy(d_base)
 d3[:min_samples_leaf] = cv_parameter
 
+# Initializing cross validation object for different approaches
 cv0 = cross_val(d0, random_state=0)
 cv1 = cross_val(d1, random_state=0)
 cv2 = cross_val(d2, random_state=0)
 cv3 = cross_val(d3, random_state=0)
 
 
-
+# List of observations
 n_list = [250, 500, 1000, 2000, 4000, 8000, 16000]
+# List of CV objects
 cv_list = [cv0, cv1, cv2, cv3]
-reps = 10
+# Repetitions
+reps = 100
 
 
 ## Make Friedman simulation

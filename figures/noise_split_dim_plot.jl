@@ -1,4 +1,4 @@
-## Figure 2
+# File for plotting Figure 3
 
 using Pkg
 using DataFrames

@@ -1,3 +1,5 @@
+# File for plotting Figure 4
+
 using JLD2
 using DataFrames
 using Gadfly

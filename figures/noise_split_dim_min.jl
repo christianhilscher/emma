@@ -1,4 +1,4 @@
-#### Figure 5 - depth chapter; comparison between weighted and and CART
+# File for generating data for Figure 5
 
 using Pkg
 using Random, Distributions
@@ -10,6 +10,7 @@ include("/home/christian/UniMA/EMMA/src/RFR.jl")
 include("/home/christian/UniMA/EMMA/src/cross_val.jl")
 include("/home/christian/UniMA/EMMA/src/aux_functions.jl")
 
+# Function for getting the best cv-parameter
 function get_best_model(n::Int, d::Int, type::String, σ::Number, m_features::Int, parameter::Symbol)
     
     xtrain1, xtest1, ytrain1, ytest1 = make_data(n, d, type, σ)
@@ -35,9 +36,10 @@ end
 
 function get_data(n_runs, max_d, σ, parameter::Symbol)
 
+    # Allocate space for results
     res_mat = zeros(max_d, n_runs)
 
-
+    # Setting parameters
     n = 2000
     d = 10
     m_features = d
@@ -58,6 +60,7 @@ function get_data(n_runs, max_d, σ, parameter::Symbol)
 
         for i in 1:length(rf.trees)
 
+            # Save depth and splitting dimension
             res = zeros(length(rf.trees[i].depth_list), 2) 
             res[:,1] = rf.trees[i].depth_list
             res[:,2] = rf.trees[i].split_dimensions
@@ -65,13 +68,18 @@ function get_data(n_runs, max_d, σ, parameter::Symbol)
             result_arr = vcat(result_arr, res)
         end
 
+        # Only comparing non-terminal nodes
         plot_data = result_arr[result_arr[:,2].!=-2, :]
+        # Noisy dimensions are all regressors above 5
         plot_data[:,2] = plot_data[:,2].>5
 
+        # Save figures as dataframe
         plot_data = DataFrame(plot_data, :auto)
         rename!(plot_data, ["depth", "noise"])
 
+        # Grouping them by depth
         gdf = groupby(plot_data, :depth)
+        # Getting mean of fraction split on noise
         cdf2 = combine(gdf, :noise => mean)
 
         res_mat[1:size(cdf2, 1), r] = cdf2[!, :noise_mean] 
@@ -79,11 +87,13 @@ function get_data(n_runs, max_d, σ, parameter::Symbol)
     return res_mat, rf
 end
 
-
+# Set seed for reproducability
 Random.seed!(68151)
 
-n_runs=25
-max_d=50
+n_runs=100
+max_d=50 #Max depth allowed - need to set this parameter; max acieved is around 30
+
+# Change σ here accordingly {1, 3, 8} to get figures
 
 # Getting data
 res_mat1, rf_α = get_data(n_runs, max_d, 8, :α)
