@@ -1,3 +1,5 @@
+# File holding the cross validation object
+
 using Base.Threads
 using ProgressMeter
 using SparseGrids
@@ -8,6 +10,7 @@ include("RFR.jl")
 check_random_state(seed::Int) = MersenneTwister(seed)
 check_random_state(rng::AbstractRNG) = rng
 
+# Cross Validation object
 mutable struct cross_val
 
     # internal parameters
@@ -22,6 +25,7 @@ mutable struct cross_val
     parameter_list::Dict
     random_state::Union{AbstractRNG, Int}
 
+    # Initializing new object
     cross_val(parameter_list; 
             random_state = 0) = new(
         [], [], [], [], 
@@ -31,6 +35,9 @@ mutable struct cross_val
     )
 end
 
+# Function for making a single dictionary out of multiple parameters
+# Needed when supplying multiple vectors for tuning parameters 
+# For example optimizing over α and max_depth
 function make_single_dicts(d::Dict)
 
     names = collect(keys(d))
@@ -50,6 +57,7 @@ function initiate_RF!(cv::cross_val)
     cv.n_models = length(cv.dictionary_list)
     # println("Making ", cv.n_models, " different specifications")
 
+    # Allocate space holding the results for each random forest
     cv.regressor_list = Vector{AbstractRegressor}(undef, cv.n_models)
 
     @inbounds for i in 1:cv.n_models
@@ -65,16 +73,19 @@ function initiate_RF!(cv::cross_val)
     return cv
 end
 
+# Function for getting the MSE
 function get_mse(pred, y)
     bias = mean(pred .- y)
     variance = var(pred)
     mse = mean((pred .- mean(y)).^2)
 
+    # Simlpe test to see if everything worked
     @assert mse == variance + bias^2 "mse != variance + bias^2"
 
     return bias, variance, mse
 end
 
+# Fitting the cross-validation object to data
 function fit!(cv::cross_val, X::Matrix, Y::Matrix; nfolds::Int=3)
     
     # Initializing cross-validation object with random forests
@@ -94,6 +105,7 @@ function fit!(cv::cross_val, X::Matrix, Y::Matrix; nfolds::Int=3)
             # Increase interval for the next fold
             ind = (ind[end]:i*incr)
 
+            # Splitting into hold-out sample
             train_cond = (1:size(X,1) .< ind[1]) + (1:size(X,1) .> ind[end]) .== 1
             test_cond = ind[1] .< 1:size(X, 1) .< ind[end]
 
@@ -102,7 +114,7 @@ function fit!(cv::cross_val, X::Matrix, Y::Matrix; nfolds::Int=3)
             y_train = Y[train_cond, :]
             y_test = Y[test_cond, :]
 
-            # Fit and predict 
+            # Fit and predict given hold-out sample
             fit!(forest, x_train, y_train)
             pred = predict(forest, x_test)
 
@@ -117,14 +129,14 @@ function fit!(cv::cross_val, X::Matrix, Y::Matrix; nfolds::Int=3)
 end
 
 
-
+# Add results to list which holds all results
 function validation_results!(cv::cross_val, bias::Float64, variance::Float64, mse::Float64)
     push!(cv.bias_list, bias)
     push!(cv.variance_list, variance)
     push!(cv.mse_list, mse)
 end
 
-
+# Get best model out of all tried for given measure
 function best_model(cv::cross_val, measure::String)
 
     ind = -1
@@ -136,6 +148,5 @@ function best_model(cv::cross_val, measure::String)
         ind = cv.variance_list .== minimum(cv.variance_list)
     end
 
-    # println(cv.dictionary_list[ind])
     return cv.regressor_list[ind][1]
 end

@@ -1,5 +1,6 @@
 # Saving auxillary function which I need over multiple files
 
+# Regression functions used in paper
 function friedman(x::Matrix, errors::Matrix)
     
     Y = 10 .* sin.(π .* x[:,1] .* x[:,2]) .+ 20 .* (x[:,3] .- 0.5).^2 .+ 10 .* x[:,4] + 5 .* x[:,5] .+ errors
@@ -32,18 +33,15 @@ function robot(x::Matrix, errors::Matrix)
     return Y
 end
 
-function sine_easy(x::Matrix, errors::Matrix)
-    
-    Y = 10 .* sin.(π .* x[:,1]) .+ errors
 
-    return Y
-end
-
+# Function for generating the data for given parameters
 function make_data(n, d, func, σ)
 
+    # Draw regressors
     x_train = rand(Uniform(0, 1), n, d)
     x_test = rand(Uniform(0, 1), n, d)
     
+    # Drawing errors from N(0, σ)
     d = Normal(0, σ)
     td = truncated(d, -Inf, Inf)
 
@@ -53,9 +51,6 @@ function make_data(n, d, func, σ)
     if func=="friedman"
         y_train = friedman(x_train, errors_train)
         y_test = friedman(x_test, errors_test)
-    elseif func=="sine_easy"
-        y_train = sine_easy(x_train, errors_train)
-        y_test = sine_easy(x_test, errors_test)
     elseif func=="dp3"
         y_train = dp3(x_train, errors_train)
         y_test = dp3(x_test, errors_test)
@@ -73,6 +68,7 @@ function make_data(n, d, func, σ)
     return x_train, x_test, y_train, y_test
 end
 
+# Get MSE for a vector of predictions and real values
 function get_mse(pred, y)
     bias = abs(mean(pred .- y))
     variance = var(pred)
@@ -81,6 +77,7 @@ function get_mse(pred, y)
     return bias, variance, mse
 end
 
+# Function used for me to get differences between models
 function compare_models(rf1::RFR, rf2::RFR, x_test::Matrix, y_test::Matrix)
 
 

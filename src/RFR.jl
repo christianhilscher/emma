@@ -1,3 +1,5 @@
+# File holding the random forest object
+
 using Random
 using Base.Threads
 include("DecisionTree.jl")
@@ -19,6 +21,7 @@ mutable struct RFR <: AbstractRegressor
     α::Float64
     param_dict::Dict
 
+    # Initialize random forest object with default parameters
     RFR(; 
         n_trees=100,
         max_depth=nothing,
@@ -40,6 +43,7 @@ mutable struct RFR <: AbstractRegressor
             param_dict)
 end
 
+# Fit random forest to data
 function fit!(forest::RFR, X::Matrix, Y::Matrix)
     @assert size(Y, 2) == 1 "Y must be 1d"
 
@@ -47,9 +51,11 @@ function fit!(forest::RFR, X::Matrix, Y::Matrix)
     forest.n_features = size(X, 2)
 
     # Allocate space
+    # trees is a list containing all regression trees
     forest.trees = Array{DTRegressor}(undef, forest.n_trees)
     
-    # make the trees
+    # Grow the trees
+    # Using multi-threading to run over multiple processor cores
     @inbounds @threads for i in 1:forest.n_trees
         # rng_states[i] = copy(forest.random_state)
         forest.trees[i] = create_tree(forest, X, Y)
@@ -58,12 +64,14 @@ function fit!(forest::RFR, X::Matrix, Y::Matrix)
     return
 end
 
+# Create a tree within a forest
 function create_tree(forest::RFR, X::Matrix, Y::Matrix)
     n_samples = size(X, 1)
 
     # Tree random state is random state + ThreadID
     tree_rs = MersenneTwister(Threads.threadid() + forest.random_state)
 
+    # In case of bootstrapping allocate space and choose observations randomly
     inds = Array{Int}(undef, n_samples)
     if forest.bootstrap
         inds = [rand(tree_rs, 1:n_samples) for i in 1:n_samples]
@@ -75,17 +83,20 @@ function create_tree(forest::RFR, X::Matrix, Y::Matrix)
         Y_ = copy(Y)
     end
 
+    # Make tree by invoking DTRegressor object with the parameters of the random forest
     new_tree = DTRegressor(max_depth= forest.max_depth,
                             max_features = forest.max_features,
                             min_samples_leaf = forest.min_samples_leaf,
                             random_state = tree_rs,
                             α = forest.α)
+    
     # This function calls the DTRegressor version of fit!
     fit!(new_tree, X_, Y_)
 
     return new_tree
 end
 
+# Prediction of random forest for a given data set X
 function predict(forest::RFR, X::Matrix)
     @assert forest.n_features == size(X, 2) "# of features are not the same"
 
@@ -94,17 +105,21 @@ function predict(forest::RFR, X::Matrix)
         error("Forest is not fitted")
     end
 
-
+    # Allocate space for predictions
     prediction = Array{Float64}(undef, (size(X, 1), forest.n_trees))
 
+    # Get predictions from each tree within the forest
     for (ind, t) in enumerate(forest.trees)
         prediction[:,ind] = predict(t, X)
     end
 
+    # Random forest prediction is then mean over all tree predictions
     out_arr = mean(prediction, dims=2)
     return out_arr
 end
 
+# Getting the strong variable selection frequency from a random forest
+# Same as in a tree but averaged over all trees in a random forest
 function strong_selection_freq(forest::RFR, var_index::Int)
     res_arr = Array{Float64}(undef, forest.n_trees)
 
@@ -115,32 +130,28 @@ function strong_selection_freq(forest::RFR, var_index::Int)
     return mean(res_arr)
 end
 
+# Return the average depth of trees in a random forest
 function average_depth(forest::RFR)
-    n_nodes_list = Array{Int}(undef, forest.n_trees)
 
+    # Allocate space
+    depth_result = Array{Int}(undef, forest.n_trees)
+
+    # Loop through all trees
     for (ind, tree) in enumerate(forest.trees)
         # Taking the maximum of the depth
-        n_nodes_list[ind] = maximum(tree.depth_list)
+        depth_result[ind] = maximum(tree.depth_list)
     end
-    return mean(n_nodes_list)
+    return mean(depth_result)
 end
 
-function combined_splitpoints(forest::RFR)
-    return_arr = []
-
-    for tree in forest.trees
-        # Only add non-terminal nodes
-        push!(return_arr, tree.pl[tree.pl .!= -2])
-    end
-
-    # Flatten array before returning
-    return collect(Iterators.flatten(return_arr))
-end
-
+# Return all P(t_L) and depth - used for Figure 2
 function lambda_depth(forest::RFR)
+    
+    # Allocate space
     return_arr = []
     depth_arr = []
 
+    # Loop through trees
     for tree in forest.trees
         # Only add non-terminal nodes
         push!(return_arr, tree.pl[tree.pl .!= -2])
