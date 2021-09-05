@@ -32,9 +32,9 @@ Additionally, the folder _data_ contains all the data generated from the files i
 
 The random forest estimator is implemented as follows:
 
-* DTRegressor:
+* Decsision Tree:
 
-    Basis of estimator, stands for Decision Tree Regressor. 
+    Basis of estimator, object is called DTRegressor. 
     The core of this object is a structure called _binary tree_, which is a collection of lists.
     The DTRegressor is the implementation of a single decision tree, making splits according to the weighted splitting rule.
     Setting tuning parameters such as maximum depth or minimum amount of observations within a node is possible.
